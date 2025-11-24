@@ -1,0 +1,17 @@
+---
+title: "InVEST basics"
+description: "Overview of the InVEST software"
+date: 11-24-2025 #important if sorting by date in tutorials
+categories: [InVEST, Quickstart] #rough ideas if want tags
+image: invest-logo-registeredtm_202305_150dpi_0.png #must be in this folder
+draft: false #true until ready to post
+---
+
+InVEST has a wide range of capabilities that are well documented....
+
+Here is what you need to know about InVEST to use the Schistosomiasis plugin.  
+
+## Topic 1  
+
+
+## Topic 2

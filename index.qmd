@@ -1,11 +1,16 @@
 ---
-title: "invest-schisto-manual"
+title: "InVEST Schistosomiasis"
+image: media/deleo_lab_logo.png
+toc: false
+about: 
+  id: hero-heading
+  template: jolla
+  image-shape: round
+  image-width: 5em
+  links:
+    - icon: github
+      text: GitHub
+      href: https://github.com/natcap/invest-schistosomiasis
 ---
 
-This is a Quarto website.
-
-To learn more about Quarto websites visit <https://quarto.org/docs/websites>.
-
-```{r}
-1 + 1
-```
+The goal of the Schistosomiasis plugin for the InVEST software is provide a tool to incorporate schistosomiasis risk into dam and water infrastructure development decisions. This work is based on the [Walz et al. 2015](https://doi.org/10.1371/journal.pntd.0004217) paper with additional contributions by Andy Chamberlain and Giulio De Leo from the De Leo Lab, and Lisa Mandle and Doug Denu from the Natural Capital Project.

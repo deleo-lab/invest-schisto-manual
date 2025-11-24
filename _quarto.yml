@@ -3,16 +3,21 @@ project:
   output-dir: docs
 
 website:
-  title: "invest-schisto-manual"
+  title: "InVEST Schistosomiasis"
   navbar:
     left:
       - href: index.qmd
         text: Home
-      - about.qmd
+      - href: getting_started.qmd
+        text: Getting started
+      - href: about.qmd
+        text: About
+      - href: tutorials.qmd
+        text: Tutorials
 
 format:
   html:
-    theme: cosmo
+    theme: spacelab #https://bootswatch.com/
     css: styles.css
     toc: true
 

@@ -1,0 +1,9 @@
+---
+title: "Tutorials"
+listing: 
+  contents: tutorials # must match folder name (e.g., tutorials) but see website below 
+  type: grid # or `default` or `table`
+  sort: "date desc" # other option https://quarto.org/docs/websites/website-listings.html#overview
+  categories: true # sort posts by assigned categories 
+---
+

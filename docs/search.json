@@ -9,8 +9,57 @@
   {
     "objectID": "index.html",
     "href": "index.html",
-    "title": "invest-schisto-manual",
+    "title": "InVEST Schistosomiasis",
     "section": "",
-    "text": "This is a Quarto website.\nTo learn more about Quarto websites visit https://quarto.org/docs/websites.\n\n1 + 1\n\n[1] 2"
+    "text": "The goal of the Schistosomiasis plugin for the InVEST software is provide a tool to incorporate schistosomiasis risk into dam and water infrastructure development decisions. This work is based on the Walz et al. 2015 paper with additional contributions by Andy Chamberlain and Giulio De Leo from the De Leo Lab, and Lisa Mandle and Doug Denu from the Natural Capital Project."
+  },
+  {
+    "objectID": "index.html#installing-invest",
+    "href": "index.html#installing-invest",
+    "title": "InVEST Schistosomiasis",
+    "section": "Installing InVEST",
+    "text": "Installing InVEST"
+  },
+  {
+    "objectID": "index.html#installing-plugin",
+    "href": "index.html#installing-plugin",
+    "title": "InVEST Schistosomiasis",
+    "section": "Installing plugin",
+    "text": "Installing plugin"
+  },
+  {
+    "objectID": "getting_started.html#installing-plugin",
+    "href": "getting_started.html#installing-plugin",
+    "title": "Getting Started",
+    "section": "Installing plugin",
+    "text": "Installing plugin"
+  },
+  {
+    "objectID": "tutorials.html",
+    "href": "tutorials.html",
+    "title": "Tutorials",
+    "section": "",
+    "text": "InVEST basics\n\n\n\nInVEST\n\n\nQuickstart\n\n\n\nOverview of the InVEST software\n\n\n\n\n\n\nNov 24, 2025\n\n\n\n\n\n\n\n\nNo matching items"
+  },
+  {
+    "objectID": "tutorials/01_invest-basics/index.html",
+    "href": "tutorials/01_invest-basics/index.html",
+    "title": "InVEST basics",
+    "section": "",
+    "text": "InVEST has a wide range of capabilities that are well documented….\nHere is what you need to know about InVEST to use the Schistosomiasis plugin."
+  },
+  {
+    "objectID": "tutorials/01_invest-basics/index.html#topic-1",
+    "href": "tutorials/01_invest-basics/index.html#topic-1",
+    "title": "InVEST basics",
+    "section": "Topic 1",
+    "text": "Topic 1"
+  },
+  {
+    "objectID": "tutorials/01_invest-basics/index.html#topic-2",
+    "href": "tutorials/01_invest-basics/index.html#topic-2",
+    "title": "InVEST basics",
+    "section": "Topic 2",
+    "text": "Topic 2"
   }
 ]
