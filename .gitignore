@@ -6,3 +6,7 @@
 .quarto
 
 /.quarto/
+
+**/*.quarto_ipynb
+
+.vscode/

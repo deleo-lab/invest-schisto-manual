@@ -135,8 +135,8 @@ Now that InVEST Workbench and the Schistosomiasis Plug-in are installed, you wil
 
 * Zipped files containing the sample data can be downloaded from a Google Drive folder linked [here](https://drive.google.com/drive/folders/1lVnXvhtyNA9mAIwBPTD0HgFQELPkHs0V)
 * For each location, there are two files:
-  * invest_schistosomiasis_[location]_datastack.tar.gz contain InVEST datastack archives (what is that?). The data in these files will populate the inputs for the Schistosomiasis Tool. 
-  * [location]_inputs.zip contain all the inputs for each location, including the different AOI (I don't know what this means)
+  * invest_schistosomiasis_[location]_datastack.tar.gz contain InVEST datastack archives (a zipped tarball containing all model inputs and parameters). The data in these files will populate the inputs for the Schistosomiasis Tool. 
+  * [location]_inputs.zip contain all the inputs for each location, including the different AOI (Area of Interest - the geographic boundary defining the study region)
 * Download the two files for the location you are interested in running
 * Once files are downloaded, extract them (unzip them). 
 * When extracted, you should see a parameters.invest.json file
