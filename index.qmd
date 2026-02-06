@@ -14,3 +14,16 @@ about:
 ---
 
 The goal of the Schistosomiasis plugin for the InVEST software is provide a tool to incorporate schistosomiasis risk into dam and water infrastructure development decisions. This work is based on the [Walz et al. 2015](https://doi.org/10.1371/journal.pntd.0004217) paper with additional contributions by Andy Chamberlain and Giulio De Leo from the De Leo Lab, and Lisa Mandle and Doug Denu from the Natural Capital Project.
+
+## To Do  
+
+:::{.align-left}
+- [x] Getting started windows
+- [ ] Getting started mac -- updates needed with dev version  
+- [ ] Quickstart using Senegal example  
+- [ ] Detailed explainations of the functions and input values based on the [SenegalHabSuit collab](https://colab.research.google.com/drive/1Gj8zyo4nE2ij10aNuoXjx3yiYCTGy5tR?usp=sharing) *Can directly add python script to this website*  
+- [ ] Using your own data example with GEE  
+- [ ] Future GEE app so users input country, dates, seasons and obtain layers needed  
+- [ ] Future Comparing water layers (eg flood, no flood)  
+- [ ] Future Report generation of schisto risk
+:::

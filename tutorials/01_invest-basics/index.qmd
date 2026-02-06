@@ -1,5 +1,5 @@
 ---
-title: "Getting Started with the InVEST Schistosomiasis Tool"
+title: "Downloading InVEST and the Schistosomiasis Plugin"
 description: "Quick-start Instructions"
 date: 11-24-2025 #important if sorting by date in tutorials
 categories: [InVEST, Quickstart] #rough ideas if want tags
@@ -7,146 +7,69 @@ image: invest-logo-registeredtm_202305_150dpi_0.png #must be in this folder
 draft: false #true until ready to post
 ---
 
-InVEST has a wide range of capabilities that are well documented....
+## Downloading InVEST
 
-Here is what you need to know about InVEST to use the Schistosomiasis plugin.  
+The Schistosomiasis Tool is built on top of NatCap's InVEST Workbench software. Before using the tool, you will have to download InVEST Workbench.
 
-## 1. Downloading InVEST
+We've created a **custom version InVEST** to support the custom functionality needed for the schistosomiasis model. When users download InVEST to run the schistosomiasis plugin, they will be using this custom version of InVEST. In the future this might not be necessary and users can use regular InVEST for the schisto plugin, but the following custom functionality makes it necessary at the moment.
 
-The Schistosomiasis Tool is built on top of NatCap's InVEST Workbench software. Before using the tool, you will have to download InVEST Workbench. 
+### Windows
 
-### 1a. Download instructions for Windows
+1.  Windows users must confirm that the Microsoft Visual C++ Redistributable is installed. To check if you have the compiler installed you can:
+    a.  Open `Add or Remove Programs` in `Settings \> Apps \> Installed apps`
+    b.  Search for `C++`
+    c.  You'll see something like `Microsoft Visual 2015-2019 Redistributable...`
+    d.  If you don't see anything like that you'll need to install the compiler
+2.  To install the compiler
+    a.  Go to [this link](https://visualstudio.microsoft.com/downloads/#microsoft-visual-c-redistributable-for-visual-studio-2022)
+    b.  Download and install `Visual Studio 2026` using the `Community` option.
+    c.  Alternatively you can just install Download and install the `Microsoft Visual C++ Redistributable` from [this link](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170#latest-supported-redistributable-version). Both the **x86** and **x64** versions.
+    d.  Open the `.exe` files and follow to installation prompts.
+3.  Download and install the InVEST workbench
+    a.  [Download custom version of InVEST](https://drive.google.com/drive/folders/1FmZieYedKNUoI82_l0Ool1hXWqyj--x4?usp=sharing) file with `win32` in the name.\  
+        ![Screenshot showing windows download link](tutorial screenshots/dev_invest_download_windows.png){width="300"}
+    b.  Open your downloads folder and open the `.exe` file
+    c.  A box Windows protexted your PC will open. Click `More info` and `Run anyways`\
+        ![Screenshots showing windows prompts](tutorial screenshots/windows_popups.png){width="300"}
+    d.  Follow the installation prompts\
+        ![Screenshots showing windows prompts](tutorial screenshots/windows_user_agreements.png){width="600"}
 
-* Windows users must confirm that the Microsoft Visual C++ Redistributable is installed. To check if you have the compiler installed you can:
-  * Open 'Add or Remove Programs'
-  * Search for 'C++'
-  * You'll see something like 'Microsoft Visual 2015-2019 Redistributable..." 
-  * If you don't see anything like that you'll need to install the compiler
-* To install the compiler 
-  * Go to [this link](https://visualstudio.microsoft.com/downloads/#microsoft-visual-c-redistributable-for-visual-studio-2022)
-  * Download and install the 'Microsoft Visual C++ Redistributable for Visual Studio'
+### Mac
 
-* Once the compiler is installed, download and install the InVEST workbench
-  * Click the link to 'Download InVEST 3.17.1 Workbench (Windows)' on [this site](https://naturalcapitalproject.stanford.edu/software/invest/invest-downloads-data)
-  
-  <div style="text-align: center;">
-  <img src="tutorial screenshots/Screenshot1.png" width="600">
-  <p><em>Screenshot showing download link</em></p>
-</div>
-  
-  * Once it's downloaded, run the installer. Select 'Install for this user only' and open Workbench
-  * Close and update or changelog windows on startup
+1.  Download and install the InVEST workbench
+    a.  [Download custom version of InVEST](https://drive.google.com/drive/folders/1FmZieYedKNUoI82_l0Ool1hXWqyj--x4?usp=sharing) file with `darwin` in the name.\
+        ![Screenshot showing windows download link](tutorial screenshots/dev_invest_download_mac.png){width="600"}
+    b.  Open your downloads folder and open the `.exe` file
+    c.  Once the file has downloaded, open it and click Agree when the license prompt appears.\
+        ![Screenshot showing licence prompt](tutorial screenshots/Screenshot2.png){width="400"}
+    d.  A window will appear telling you to drag InVEST to Applications. Drag the InVEST app to your Applications folder.
+        ![Screenshot showing drag to Applications](tutorial screenshots/Screenshot3.png){width="300"}
+    e.  IMPORTANT: Launch InVEST for the First Time. MacOS security will block the app on first launch. To allow it:
+       i.  Open `Applications`\
+       ii. Right-click the `InVEST app` $\to$ choose `Open`\
+       ![Screenshot showing launch for InVEST](tutorial screenshots/Screenshot4.png){width="600"}
+       iii. In the popup, click `Done` (the app will not open yet)\
+       ![Screenshot showing where to click](tutorial screenshots/Screenshot5.png){width="300"}
+       iv. Open `Applications` $\to$ `System Settings` $\to$ `Privacy & Security`\
+       ![Screenshot showing open System Settings](tutorial screenshots/Screenshot6.png){width="600"}
+      v.  Scroll to the `Security` section and you should see: **InVEST <version> Workbench was blocked to protect your Mac.** Click `Open Anyway`.\
+      ![Screenshot showing System Settings Security section](tutorial screenshots/Screenshot7.png){width="600"}
+      vi.  Click `Open Anyway` again on the pop up box.\
+      ![Screenshot showing where to click 'Open Anyway'](tutorial screenshots/Screenshot8.png){width="300"}
+      vi.  Enter your Mac username + password when prompted.\
+      ![Screenshot showing enter username and password](tutorial screenshots/Screenshot9.png){width="300"}
+   f. The InVEST Workbench will now start as usual. This approval is only needed the first time.
 
-### 1b. Download instructions for Mac
-* Check your MacOS version. Different versions of macOS require different minimum InVEST versions:
-  * macOS 10.13 High Sierra → requires InVEST 3.4.0 or later
-  * macOS 11 Big Sur → requires InVEST 3.9.0 or later
-* Download the InVEST Workbench. 
-  * Click the link to 'Download InVEST 3.17.1 Workbench (Mac)' on [this site](https://naturalcapitalproject.stanford.edu/software/invest/invest-downloads-data)
-  
-    <div style="text-align: center;">
-  <img src="tutorial screenshots/Screenshot1.png" width="600">
-  <p><em>Screenshot showing download link</em></p>
-</div>
-  
-* Once the file has downloaded, open it and click Agree when the license prompt appears. 
+## Installing the Schistosomiasis Plug-in
 
- <div style="text-align: center;">
-  <img src="tutorial screenshots/Screenshot2.png" width="600">
-  <p><em>Screenshot showing licence promptk</em></p>
-</div>
+Once InVEST Workbench is downloaded, you will need to open it and add the Schistosomiasis Plug-in to use the Schistosomiasis Tool.
 
-* A window will appear telling you to drag InVEST to Applications. Drag the InVEST app to your Applications folder. 
+1.  Open InVEST Workbench. In InVEST Workbench click the `three line menu icon` $\to$ `Manage Plugins` $\to$ `Add Plugin`.\
+![Screenshot showing where to manage plug-ins](tutorial screenshots/Screenshot10.png){width="600"}
+2.  Copy and paste the following for git URL: **`https://github.com/natcap/invest-schistosomiasis.git`**. Check the box to acknowledge the risks associated with installing the plugin. Leave everything else blank. Click `Add`. This step will take several minutes. It is setting up an isolated python environment, downloading, and installing the schistosomiasis model. You only need to do this step once.\
+![Screenshot showing how to add plug-in](tutorial screenshots/Screenshot11.png){width="600"}
+3.  The `Schistosomiasis` plugin is now available in the workbench.\
+![Screenshots InVEST workspace](tutorial screenshots/plugin_successful.png){width="600"}
 
- <div style="text-align: center;">
-  <img src="tutorial screenshots/Screenshot3.png" width="500">
-  <p><em>Screenshot showing drag to Applications</em></p>
-</div>
+4.  The elements of the workbench are described in the [InVEST documentation](http://releases.naturalcapitalproject.org/invest-userguide/latest/en/getting_started.html#workbench-interface).
 
-* IMPORTANT: Launch InVEST for the First Time. MacOS security will block the app on first launch. To allow it:
-  * Open Applications  
-  * Right-click the InVEST app → choose Open
-  
-   <div style="text-align: center;">
-  <img src="tutorial screenshots/Screenshot4.png" width="600">
-  <p><em>Screenshot showing launch for InVEST</em></p>
-</div>
-  
-  * In the popup, click 'Done' (the app will not open yet)
-  
-     <div style="text-align: center;">
-  <img src="tutorial screenshots/Screenshot5.png" width="350">
-  <p><em>Screenshot showing where to click 'Done'</em></p>
-</div>
-
-  * Open Applications → System Settings → Privacy & Security
-  
-     <div style="text-align: center;">
-  <img src="tutorial screenshots/Screenshot6.png" width="600">
-  <p><em>Screenshot showing open System Settings</em></p>
-</div>
-  
-  * Scroll to the Security section — you should see: 'InVEST <version> Workbench was blocked to protect your Mac.' Click 'Open Anyway'. 
-  
-       <div style="text-align: center;">
-  <img src="tutorial screenshots/Screenshot7.png" width="500">
-  <p><em>Screenshot showing System Settings Security section</em></p>
-</div>
-  
-  * Click 'Open Anyway' again on the pop up box. 
-  
-       <div style="text-align: center;">
-  <img src="tutorial screenshots/Screenshot8.png" width="350">
-  <p><em>Screenshot showing where to click 'Open Anyway'</em></p>
-</div>
-  
-  * Enter your Mac username + password when prompted. 
-  
-       <div style="text-align: center;">
-  <img src="tutorial screenshots/Screenshot9.png" width="350">
-  <p><em>Screenshot showing enter username and password</em></p>
-</div>
-
-After this, the InVEST Workbench will start. This approval is only needed the first time.
-
-## 2. Downloading the Schistosomiasis Plug-in
-
-Once InVEST Workbench is succesfully downloaded, you will need to open it and add the Schistosomiasis Plug-in to use the Schistosomiasis Tool. 
-
-* Open InVEST Workbench. In InVEST Workbench click the three line menu icon → Manage Plugins → Add Plugin.
-
-     <div style="text-align: center;">
-  <img src="tutorial screenshots/Screenshot10.png" width="600">
-  <p><em>Screenshot showing where to manage plug-ins</em></p>
-</div>
-
-* Copy and paste and insert the following for git URL: https://github.com/natcap/invest-schistosomiasis.git. Check the box to acknowledge the risks associated with installing the plugin. Leave everything else blank.Click 'Add'. This step will take several minutes. It is setting up an isolated python environment, downloading, and installing the schistosomiasis model. You only need to do this step once. 
-
-     <div style="text-align: center;">
-  <img src="tutorial screenshots/Screenshot11.png" width="350">
-  <p><em>Screenshot showing how to add plug-in</em></p>
-</div>
-
-* To check that the plug-in was successfully installed, go to XXX and open it. 
-
-## 3. Downloading sample data
-
-Now that InVEST Workbench and the Schistosomiasis Plug-in are installed, you will need sample data to run the model. We have provided sample data for CIV, Senegal, and Tanzania. 
-
-* Zipped files containing the sample data can be downloaded from a Google Drive folder linked [here](https://drive.google.com/drive/folders/1lVnXvhtyNA9mAIwBPTD0HgFQELPkHs0V)
-* For each location, there are two files:
-  * invest_schistosomiasis_[location]_datastack.tar.gz contain InVEST datastack archives (a zipped tarball containing all model inputs and parameters). The data in these files will populate the inputs for the Schistosomiasis Tool. 
-  * [location]_inputs.zip contain all the inputs for each location, including the different AOI (Area of Interest - the geographic boundary defining the study region)
-* Download the two files for the location you are interested in running
-* Once files are downloaded, extract them (unzip them). 
-* When extracted, you should see a parameters.invest.json file
-* Drag parameters.invest.json into the InVEST model window to auto-fill all inputs
-
-## 4. Running the model with sample data
-
-* Open the Schistosomiasis model in Workbench.
-* Drag parameters.invest.json into the UI.
-* Choose an output folder.
-* Click Run.
-
-## 5. Interpreting results with sample data

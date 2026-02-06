@@ -8,7 +8,7 @@ website:
     left:
       - href: index.qmd
         text: Home
-      - href: getting_started.qmd
+      - href: /tutorials/01_invest-basics/index.qmd
         text: Getting started
       - href: about.qmd
         text: About

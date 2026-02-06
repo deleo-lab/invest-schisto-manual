@@ -1,0 +1,40 @@
+---
+title: "Running sample models"
+description: "Use our sample data to run your first model"
+date: 02-04-2025 #important if sorting by date in tutorials
+categories: [InVEST, Quickstart] #rough ideas if want tags
+image: "Barrage_de_Diama_Massowka, CC BY-SA 4.0  Wikimedia Commons.jpg" #must be in this folder
+fit-alt: "Barrage_de_Diama_Massowka, CC BY-SA 4.0  Wikimedia Commons.jpg"
+draft: true #true until ready to post
+---
+
+## Downloading sample data
+
+Now that InVEST Workbench and the Schistosomiasis Plug-in are installed, you will need sample data to run the model. We have provided sample data for Cote d'Ivoire (CIV), Senegal, and Tanzania.
+
+Zipped files containing the sample data can be downloaded from a Google Drive folder linked [here](https://drive.google.com/drive/folders/1lVnXvhtyNA9mAIwBPTD0HgFQELPkHs0V). [currently need to ask for access!]{style="color: red;"}. For each location, there are two files:
+
+1. `invest_schistosomiasis\_\[location\]\_datastack.tar.gz` contain InVEST datastack archives (a zipped tarball containing all model inputs and parameters). The data in these files will populate the inputs for the Schistosomiasis Tool.  
+2. `\[location\]\_inputs.zip` contain all the inputs for each location, including the different AOI (Area of Interest - the geographic boundary defining the study region)
+    
+### Move data into InVEST  
+
+1. Download the two files for the location you are interested in running from [Google Drive](https://drive.google.com/drive/folders/1lVnXvhtyNA9mAIwBPTD0HgFQELPkHs0V) [currently need to ask for access!]{style="color: red;"}
+2. Once files are downloaded, extract them (unzip them). Store them in a folder relevant to your project (e.g. `Invest_sample_data/Schistosomiasis/Senegal`)\
+![Screenshot of unzipping on windows](unzip_windows.png){width=600}
+
+3. Open `InVEST` and then click `Schistosomiasis` to open the plugin.\
+![Screenshot of opening schistosomiasis plugin](open_plugin.png)
+3. In your file browser navigate to where you extracted the `invest_schistosomiasis_senegal_datastack` folder. In that folder there is a file `parameters.invest.json`.
+4. Drag parameters.invest.json into the InVEST model window to auto-fill all inputs. Alternatively you can open the file using `Load parameters from file` and navigating to `parameters.invest.json`
+[stopped here because json needs updates]{style="color: red;"}
+
+
+## Running the model with sample data
+
+-   Open the Schistosomiasis model in Workbench.
+-   Drag parameters.invest.json into the UI.
+-   Choose an output folder.
+-   Click Run.
+
+## Interpreting results with sample data

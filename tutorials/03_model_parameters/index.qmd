@@ -1,0 +1,238 @@
+---
+title: "Understanding the model inputs"
+description: "Details on the model parameters and how the model works"
+date: 02-05-2025 #important if sorting by date in tutorials
+categories: [InVEST, Quickstart, Parameters] #rough ideas if want tags
+image: plugin_blank.png #must be in this folder
+draft: true #true until ready to post
+---
+
+```{r}
+#| include: false
+
+## packages for the plots
+library(tidyverse)
+library(terra)
+library(tidyterra)
+library(geodata)
+
+## filepath to get to the senegal_inputs folder (if someone else knits this file they will need to comment this out and make their own)
+fp <- "H:/My Drive/De Leo Lab/projects/InVEST_schisto/InVEST_sample_data/Schistosomiasis/senegal_inputs/"
+
+## ggplot setup
+theme_set(theme_bw())
+theme_update(plot.title = element_text(hjust=0.5, face = "bold"))
+```
+
+## Background  
+
+The backbone of the InVEST Schistosomiasis tools is recreating the production functions presented in [Waltz et al., 2015](https://doi.org/10.1371/journal.pntd.0004217). The underlying mechanistic model create a habitat suitability index based off remotely sensed habitat variables in a users area of interest. The relationship between some of these parameters and the habitat suitablity can be changed by the user in the InVEST workbench, others the users can define.
+
+To get started the inputs needs to be in a project folder. Details on how to build these inputs for yourself are in [future tutorial link]{style="color: red;"}. For the purpose of this tutorial we are going to use the Senegal sample data available on [Google Drive]() in `senegal_inputs.zip`. Download and unzip the file to your project folder. More details on how to download and unzip are provided in [Running sample models](../tutorials/02_sample_data/index.qmd). For this tutorial you don't need the `invest_schistosomiasis_senegal_datastack` folder or to load the `.json` file as described in the other tutorial. We are going to specify the parameters ourselves and create our own `.json` run files.  
+
+## Workbench  
+
+![Screenshot of workbench](plugin_blank.png){width=600}
+
+When first opened the Schistosomiasis plugin looks like this. Each of the red boxes require an input from the user. Short descriptions of these are provided by clicking the &#128712; icons. Details on how to fill the red boxes and the underlying functions are detailed below. 
+
+### Workspace (directory)  
+
+The workspace is the folder where all the model's output files will be written. If this folder does not exist, it will be created. If data already exists in the folder, it will be overwritten.  
+
+Click the `folder icon`, then navigate to where you want the model to be saved. In the screenshot I am saving it to a folder called `senegal_example_inputs`. Click `Select Folder` and the box will now contain the path to that folder.\
+![screenshot setting up workspace](01_workspace.png){width=600}
+
+### File Suffix (string, optional)  
+
+Option to add a suffix to model outputs to help keep track of different run. I'm using today's date as a sting YYYYMMDD (20260205) so the runs will be saved in order.  
+
+### Area Of Interest (vector)  
+
+The Area of Interest (AOI) is a polygon of the area where you want the predictions and have the input data. For this example the AOI is the Senegal River Basin and the shapefile was provided in the `senegal_inputs` folder downloaded from Google Drive.  
+
+Click the `folder icon`, navigate the `senegal_inputs/projected_sen_aoi.gpkg`, and click `Open`. Use this same process to load all of the files described below.  
+
+Here is what the AOI for the Senegal River Basin sample data looks like.
+```{r}
+#| echo: false
+
+aoi <- vect(paste0(fp, "projected_sen_aoi.gpkg"))
+
+## country boarders for plots
+senegal <- gadm(country="SEN", level=0, resolution=2, path="/maps/")
+senegal <- project(senegal, crs(aoi))
+mauritania <- gadm(country="MRT", level=0, resolution=2, path="/maps/")
+mauritania <- project(mauritania, crs(aoi))
+
+pbase <- ggplot()+
+  geom_spatvector(data=senegal)+
+  geom_spatvector(data=mauritania) +
+  geom_text(aes(x=c(xmin(senegal)+2e5, xmin(mauritania)+1.5e5), 
+                y=c(ymax(senegal)-1.5e5, ymin(mauritania)+2.5e5), 
+                label=c("Senegal", "Mauritania")), size=8) +
+  scale_x_continuous(limits = c(xmin(senegal), xmin(senegal)+3e5))+
+  scale_y_continuous(limits = c(ymin(senegal)+3e5, ymin(mauritania)+3e5))+
+  labs(x=NULL, y=NULL)
+
+pbase+
+  geom_spatvector(data=aoi, color="red", fill="red", lwd=1, alpha=0.5)+
+  geom_text(aes(x=(xmin(aoi)+7e4), y=ymin(aoi)+5e4, label="AOI"), size=8)
+```
+
+
+### Max decay distance (number) (m)
+
+The maximum threat distance from water risk in meters The risk decays 1 $\to$ 0 from 1km from water to the input max distance to water value linearly. *How far from water do you expect a population to be impacted?* 
+
+The function for proximity to water was based on a combination of literature and expert opinion. Households near schistosome-containing water bodies tend to have higher schistosomiasis prevalence than those far away ([Huang and Manderson 1992](https://doi.org/10.1016/0001-706x(92)90037-x)). This relationship has been studied in Kenya, Ghana and Brazil and summarized into four risk categories based on a residence’s proximity to freshwater: very high (<100 m), high (101-500 m), low (501-1,000 m) and very low (1,001-2,000 m) ([Ajakaye et al. 2017](https://doi.org/10.1371/journal.pntd.0005733)). Based on field experience, people living in the arid Senegal River Basin travel farther to water (personal communication with Giulio De Leo and Andy Chamberlin), so the risk categories at this site were scaled up to: total (<1 km), linearly declining (1-15 km), and negligible (>15 km). This categorization is supported by a study in Kenya which found no correlation between proximity and prevalence for schools within 1 km of water ([Nagi et al. 2014](https://doi.org/10.1371/journal.pntd.0002991)).
+
+Essentially, in northern Senegal surface water is quite limited (Sahel Desert) so we expect people to travel quite far to access water points. Therefore, 5 km (5000m) is a reasonable estimate for maximum distance (`max decay distance = 5000`).
+
+```{r}
+#| echo: false
+
+data.frame(x=c(0, 1000, 5000, 7000),
+           y=c(1, 1, 0, 0)) %>% 
+  ggplot(aes(x=x, y=y)) +
+  geom_line() +
+  labs(x="Distance from water body (m)",
+       y="Relative transmission risk",
+       title = "Proximity to water function")
+```
+
+
+### Water Presence (raster)  
+A raster indicating presence of water called `projected_basin_water_mask_nodata_sen.tif` in the sample data. The water mask data here is based on [Andy add citation]{style="color: red;"} and shows water presence/absenece in 30x30 meter pixels. The water mask is potentially the most important part of the model as risk will be underestimated for an area if the water presence raster indicates there is no water, but in truth small water bodies are present. Notice in the plot the Senegal river, which runs along the Mauritania-Senegal boarder and Lac de Guiers are clearly shown.  
+
+[I can change this to be interactive so the user and zoom in and see small water pixels]{style="color: red;"}
+```{r}
+#| include: false
+
+water_mask <- rast(paste0(fp, "projected_basin_water_mask_nodata_sen.tif"))
+water_mask[is.na(water_mask)] <- 0
+water_mask <- as.factor(water_mask)
+
+
+pbase +
+  geom_spatraster(data=water_mask, alpha=0.7)+
+  geom_spatvector(data=aoi, color="red", fill="transparent", lwd=1)+
+  geom_text(aes(x=(xmin(aoi)+7e4), y=ymin(aoi)+5e4, label="AOI"), size=8)+
+  labs(fill="water present")
+
+```
+
+### Population 
+
+#### Population Raster (raster) (m)  
+
+[Why is there an "m" in this title?]{style="color: red;"}  
+
+A raster representing the number of inhabitants per pixel called `population_count_projected.tif`. The population data in this tutorial is from [Andy add citation]{style="color: red;"} and shows the population estimates in ~1km pixels from [YEAR]{style="color: red;"}. The population estimates are used to estimate the convoluted/population at risk estimates. It's a bit hard to see because most of Senegal has a low population density, but Saint Louis (coast directly left of AOI) has a much higher population estimate. 
+
+```{r}
+popu <- rast(paste0(fp, "population_count_projected.tif"))
+
+pbase +
+  geom_spatraster(data=popu)+
+  scale_fill_fermenter(na.value = "transparent")+
+  geom_spatvector(data=aoi, color="red", fill="transparent", lwd=1)+
+  geom_text(aes(x=(xmin(aoi)+7e4), y=ymin(aoi)+5e4, label="AOI"), size=8)+
+  labs(fill="population")
+```
+
+#### Use Default Population Suitability (optional)
+
+[population is misspelled!]{style="color: red;"} 
+
+Slide bar with the option to Use the Default Population Suitability (slide right) or input your own function (slide left). The default option is a linear increase in risk to rural max and an s-curve decrease in risk from rural max to urbanization max.
+```{r}
+rural_max = 1000
+urban_max = 25000
+
+h_range = urban_max - rural_max
+midpoint <- rural_max + h_range/2
+k = 10 / h_range
+
+data.frame(h=seq(0, 3e4, by=1000)) %>% 
+  mutate(linear_scurve =case_when(h<2 ~ 0,
+                                  h<=rural_max ~ rural_max/h,
+                                  h>rural_max ~ 1/(1 + exp(k * (h - midpoint))),
+                                  TRUE ~ 0)) %>% 
+  ggplot(aes(x=h, y=linear_scurve)) +
+  geom_line()+
+  labs(x=bquote("Human population per "(km^2)),
+       y="Relative transmission risk",
+       title="Default population suitability function")
+```
+
+If the default is used the next two options are `Rural Population Max` and `Urbanization Population Max`.\ 
+![screenshot of default population suitabilty](pop_suitability_default.png)  \
+
+For the tutorial use `Rural Population Max` = `1000` and `Urbanization Population Max` = `25000`. These values are based on at what respective population density you expect risk to be highest (1; rural) and lowest (0; urban). [Andy confirm this:]{style="color: red;"} We estimated these values based on our local knowledge of at what population density transmission is highest before WASH measure are implemented and our estimate at which population density people are not exposed to surface water around their homes (e.g. city with piped water and plumming).  
+ 
+#### Don't Use Default Population Suitability (optional)  
+
+If the default option is not used the function and parameters need to be provided.  
+![screenshot of not default population suitabilty](pop_suitability_nodefault.png)  \
+
+The `Suitability Function Type` needs to be defined for both `Rural` and `Urbanization` using the drop down menus. Then for each function various parameters need to be defined.  
+
+| function | rural | urban |  
+| --- | --- | --- |  
+| `Linear` | Four points indicating the start (`Xa`, `Ya`) and end (`Xz`, `Yz`) of the line where `Xa`=min population size, `Ya`=risk at Xa, and `Xz`=max rural population size with the respective max risk (`Yz`, typically 1) | same idea in reverse |  
+| `exponential` | `Yin` = ..., `Xmed`=..., `Decay_factor`=..., `Max_dist`=... | ...|  
+| `scurve` (sigmoidal) | `Yin`=..., `Yfin`=..., `Xmed`=..., `Inv_slope`=... | ... |  
+| `trapezoid` | each is a point `a`=..., `b`=..., `c`=..., `z`=..., of the trapazoid | ...|  
+| `gaussian` | `Mean`=..., `Std`=..., `Lb` =..., `Ub` =... | ...|  
+
+[Here I completely don't understand how the trapezoid would work / how two linear functions are different from a trapezoid]{style="color: red;"}
+
+[helpful to add some plots here explaining more?]{style="color: red;"}
+
+### Calculate Water Depth (optional)  
+Water depth is calculated using the water presence raster input and water distance from shore as a proxy for depth.
+
+For the tutorial we are going to `Enable` this (slide to right) then fill in the `Water Depth Risk Weight (ratio: a decimal from 0-1)` = `1`. The weight this factor should have on overall risk.  
+
+### Calculate Water Temperature (optional)  
+
+`Enable` and so that water temperature effects are calculated. Now a series of rasters and ratio inputs are needed. 
+
+
+#### Dry/ Season Temperature Raster (raster)  
+
+Rasters of air temperature in &deg;C during the dry and wet seasons. These are called `projected_habsuit_waterTemp_dry_2019_sen.tif` and `projected_habsuit_waterTemp_wet_2019_sen.tif` respectively. 
+
+#### Snail Water Temp Dry & Wet Risk  
+
+A ratio [0,1] of the temperature associated risk to snails in the dry and wet seasons. 
+
+For the tutorial set both of these to `1`. 
+
+#### Snail Suitabililty Function Types  
+
+Here is where you choose the snail of interest and thus which species of Schistosoma the model is for. Remember *Bulinus truncatus* $\to$ *S. haematobium* and *Biomphalaria* $\to$ *S. mansoni*. The different snail genera have different thermal envelopes thus this will change the risk-temperature relationship. Alternatively, a function (linear, exponential, scurve, trapazoidal, gaussian) with the parameters decribed above can be used. 
+
+Again, set the `Risk weight` in the model for these parameters to `1`. 
+
+## stopped here  
+
+
+## notes from Andy  
+https://github.com/Bushytop/schisto_eeid/tree/main/data/natcap_invest
+https://colab.research.google.com/drive/1Gj8zyo4nE2ij10aNuoXjx3yiYCTGy5tR?usp=sharing#scrollTo=dylSqiUUwmA8
+[7:52 AM]in particular, the parameters to use for consistency are:
+max decay distance: 5000
+use default population suitability (enable)
+rural population max: 1000
+urbanization population max: 25000
+calculate water depth (enable)
+water depth risk weight: 1
+calculate water temperature (enable)
+all risk weights set to 1
+default snail and parasite suitability function types
+calculate ndvi (enable)
+default ndvi suitability function
+ndvi risk weight: 1 for both dry and wet
+water velocity disabled and no other functions defined
