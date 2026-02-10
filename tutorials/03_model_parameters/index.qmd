@@ -4,7 +4,7 @@ description: "Details on the model parameters and how the model works"
 date: 02-05-2025 #important if sorting by date in tutorials
 categories: [InVEST, Quickstart, Parameters] #rough ideas if want tags
 image: plugin_blank.png #must be in this folder
-draft: true #true until ready to post
+draft: false #true until ready to post
 ---
 
 ```{r}
@@ -22,6 +22,35 @@ fp <- "H:/My Drive/De Leo Lab/projects/InVEST_schisto/InVEST_sample_data/Schisto
 ## ggplot setup
 theme_set(theme_bw())
 theme_update(plot.title = element_text(hjust=0.5, face = "bold"))
+
+## data sets
+### aoi
+aoi <- vect(paste0(fp, "projected_sen_aoi.gpkg"))
+
+## country boarders for plots
+senegal <- gadm(country="SEN", level=0, resolution=2, path="/maps/")
+senegal <- project(senegal, crs(aoi))
+mauritania <- gadm(country="MRT", level=0, resolution=2, path="/maps/")
+mauritania <- project(mauritania, crs(aoi))
+
+## population
+popu <- rast(paste0(fp, "population_count_projected.tif"))
+  
+## water mask
+water_mask <- rast(paste0(fp, "projected_basin_water_mask_nodata_sen.tif"))
+water_mask[is.na(water_mask)] <- 0
+water_mask <- as.factor(water_mask)
+
+## water temperature
+temp_dry_wet <- c(rast(paste0(fp, "projected_habsuit_waterTemp_dry_2019_sen.tif")),
+                  rast(paste0(fp, "projected_habsuit_waterTemp_wet_2019_sen.tif")))
+names(temp_dry_wet) <- c("waterTemp_dry", "waterTemp_wet")
+
+## ndvi
+ndvi_dry_wet <- c(rast(paste0(fp, "projected_habsuit_NDVI_dry_2019_sen.tif")),
+                  rast(paste0(fp, "projected_habsuit_NDVI_wet_2019_sen.tif")))
+
+names(ndvi_dry_wet) <- c("NDVI_dry", "NDVI_wet")
 ```
 
 ## Background  
@@ -56,14 +85,6 @@ Click the `folder icon`, navigate the `senegal_inputs/projected_sen_aoi.gpkg`, a
 Here is what the AOI for the Senegal River Basin sample data looks like.
 ```{r}
 #| echo: false
-
-aoi <- vect(paste0(fp, "projected_sen_aoi.gpkg"))
-
-## country boarders for plots
-senegal <- gadm(country="SEN", level=0, resolution=2, path="/maps/")
-senegal <- project(senegal, crs(aoi))
-mauritania <- gadm(country="MRT", level=0, resolution=2, path="/maps/")
-mauritania <- project(mauritania, crs(aoi))
 
 pbase <- ggplot()+
   geom_spatvector(data=senegal)+
@@ -103,16 +124,11 @@ data.frame(x=c(0, 1000, 5000, 7000),
 
 
 ### Water Presence (raster)  
-A raster indicating presence of water called `projected_basin_water_mask_nodata_sen.tif` in the sample data. The water mask data here is based on [Andy add citation]{style="color: red;"} and shows water presence/absenece in 30x30 meter pixels. The water mask is potentially the most important part of the model as risk will be underestimated for an area if the water presence raster indicates there is no water, but in truth small water bodies are present. Notice in the plot the Senegal river, which runs along the Mauritania-Senegal boarder and Lac de Guiers are clearly shown.  
+A raster indicating presence of water called `senegal_inputs/projected_basin_water_mask_nodata_sen.tif` in the sample data. The water mask data here is based on [Andy add citation]{style="color: red;"} and shows water presence/absenece in 30x30 meter pixels. The water mask is potentially the most important part of the model as risk will be underestimated for an area if the water presence raster indicates there is no water, but in truth small water bodies are present. Notice in the plot the Senegal river, which runs along the Mauritania-Senegal boarder and Lac de Guiers are clearly shown.  
 
 [I can change this to be interactive so the user and zoom in and see small water pixels]{style="color: red;"}
 ```{r}
 #| include: false
-
-water_mask <- rast(paste0(fp, "projected_basin_water_mask_nodata_sen.tif"))
-water_mask[is.na(water_mask)] <- 0
-water_mask <- as.factor(water_mask)
-
 
 pbase +
   geom_spatraster(data=water_mask, alpha=0.7)+
@@ -128,11 +144,9 @@ pbase +
 
 [Why is there an "m" in this title?]{style="color: red;"}  
 
-A raster representing the number of inhabitants per pixel called `population_count_projected.tif`. The population data in this tutorial is from [Andy add citation]{style="color: red;"} and shows the population estimates in ~1km pixels from [YEAR]{style="color: red;"}. The population estimates are used to estimate the convoluted/population at risk estimates. It's a bit hard to see because most of Senegal has a low population density, but Saint Louis (coast directly left of AOI) has a much higher population estimate. 
+A raster representing the number of inhabitants per pixel called `senegal_inputs/population_count_projected.tif`. The population data in this tutorial is from [Andy add citation]{style="color: red;"} and shows the population estimates in ~1km pixels from [YEAR]{style="color: red;"}. The population estimates are used to estimate the convoluted/population at risk estimates. It's a bit hard to see because most of Senegal has a low population density, but Saint Louis (coast directly left of AOI) has a much higher population estimate. 
 
 ```{r}
-popu <- rast(paste0(fp, "population_count_projected.tif"))
-
 pbase +
   geom_spatraster(data=popu)+
   scale_fill_fermenter(na.value = "transparent")+
@@ -147,6 +161,9 @@ pbase +
 
 Slide bar with the option to Use the Default Population Suitability (slide right) or input your own function (slide left). The default option is a linear increase in risk to rural max and an s-curve decrease in risk from rural max to urbanization max.
 ```{r}
+#| echo: false
+
+
 rural_max = 1000
 urban_max = 25000
 
@@ -160,7 +177,7 @@ data.frame(h=seq(0, 3e4, by=1000)) %>%
                                   h>rural_max ~ 1/(1 + exp(k * (h - midpoint))),
                                   TRUE ~ 0)) %>% 
   ggplot(aes(x=h, y=linear_scurve)) +
-  geom_line()+
+  geom_line(color="blue")+
   labs(x=bquote("Human population per "(km^2)),
        y="Relative transmission risk",
        title="Default population suitability function")
@@ -169,7 +186,7 @@ data.frame(h=seq(0, 3e4, by=1000)) %>%
 If the default is used the next two options are `Rural Population Max` and `Urbanization Population Max`.\ 
 ![screenshot of default population suitabilty](pop_suitability_default.png)  \
 
-For the tutorial use `Rural Population Max` = `1000` and `Urbanization Population Max` = `25000`. These values are based on at what respective population density you expect risk to be highest (1; rural) and lowest (0; urban). [Andy confirm this:]{style="color: red;"} We estimated these values based on our local knowledge of at what population density transmission is highest before WASH measure are implemented and our estimate at which population density people are not exposed to surface water around their homes (e.g. city with piped water and plumming).  
+For the tutorial use `Rural Population Max` = `1000` and `Urbanization Population Max` = `25000`. These values are based on at what respective population density you expect risk to be highest (1; rural) and lowest (0; urban). [Andy confirm this:]{style="color: red;"} We estimated these values based on our local knowledge of at what population density transmission is highest before WASH measure are implemented and our estimate at which population density people are not exposed to surface water around their homes (e.g. city with piped water and plumbing).  
  
 #### Don't Use Default Population Suitability (optional)  
 
@@ -190,19 +207,132 @@ The `Suitability Function Type` needs to be defined for both `Rural` and `Urbani
 
 [helpful to add some plots here explaining more?]{style="color: red;"}
 
+```{r}
+## linear
+data.frame(h = c(0, 100),
+           y = c(0, 1),
+           lab = c("(Xa, Ya)", "(Xz, Yz)")) %>% 
+  ggplot(aes(x=h, y=y)) +
+  geom_line(color="blue") +
+  geom_point() +
+  geom_text(aes(label=lab), position = position_nudge(x=c(5, -5))) +
+  labs(x=bquote("Human population per "(km^2)),
+       y="Relative transmission risk",
+       title="Linear") 
+
+## exponential  
+Yin <- 100 #initial or intercept?
+Xmed <- NA #inflection point?
+Decay_factor <- 0.05 
+Max_dist <- 100
+
+data.frame(h = seq(0, 100, by=1)) %>% 
+  mutate(y = Yin * exp(-Decay_factor * h)) %>% 
+  ggplot(aes(x=h, y=y)) +
+  geom_line(color="blue") +
+  labs(x=bquote("Human population per "(km^2, h)),
+       y="Relative transmission risk",
+       title="Exponential",
+       subtitle = bquote(Y==Yin%.%e^"Decay_factor*h"))
+
+## scurve
+Yin <- 100 #min?
+Yfin <- 0 #max?
+Xmed <- 50 #midpoint
+Inv_slope <- 10/(Yfin - Yin) #k?
+
+data.frame(h= seq(0, 100, by=1)) %>% 
+  mutate(y = 1/(1 + exp(Inv_slope * (h - Xmed)))) %>% 
+  ggplot(aes(x=h, y=y)) +
+  geom_line(color="blue") +
+  geom_vline(xintercept = Xmed, lty=2) +
+  geom_text(aes(x=Xmed+5, y=1, label="Xmed"))+
+  labs(x=bquote("Human population per "(km^2, h)),
+       y="Relative transmission risk",
+       title="Scurve",
+       subtitle = bquote(Y==1/{1 + e^{"Inv_slope" %.% (h - Xmed)}}*" ; Inv_slope = 10/(Yfin-Yin)"))
+
+## trapazoid
+data.frame(x = c(0, 40, 60, 100),
+           y = c(0, 0.5, 1, 0.5),
+           lab = c("a", "b", "c", "z")) %>% 
+  ggplot(aes(x=x, y=y)) +
+  geom_line(color="blue") +
+  geom_point() +
+  geom_text(aes(label=lab), position = position_nudge(x=c(5, -5))) +
+  labs(x=bquote("Human population per "(km^2)),
+       y="Relative transmission risk",
+       title="Trapezoid")
+
+## gaussian
+my_mean <- 50
+my_sd <- 20
+Lb <- 20 #lower bound?
+Ub <- 80
+
+data.frame(h= seq(0, 100, by=1)) %>% 
+  arrange(h) %>% 
+  mutate(y = pnorm(h, mean=my_mean, sd=my_sd),
+         y = case_when(h <= Lb ~ 0, 
+                       h >= Ub ~ 1,
+                       TRUE ~ y)) %>% 
+  ggplot(aes(x=h, y=y)) +
+  geom_line(color="blue") +
+  geom_vline(xintercept = c(Lb, Ub), lty=2) +
+  geom_text(aes(x=Lb+2, y=1, label="Lb"))+
+  geom_text(aes(x=Ub-2, y=0.2, label="Ub"))+
+  labs(x=bquote("Human population per "(km^2, h)),
+       y="Relative transmission risk",
+       title="Gaussian")
+```
+
+
+
 ### Calculate Water Depth (optional)  
 Water depth is calculated using the water presence raster input and water distance from shore as a proxy for depth.
 
 For the tutorial we are going to `Enable` this (slide to right) then fill in the `Water Depth Risk Weight (ratio: a decimal from 0-1)` = `1`. The weight this factor should have on overall risk.  
 
+The funtion for water depth uses the distance from shore as a proxy for depth. [We may need to address why this function dips to y=0 at x=2000 but then rises to y=0.088 for values of x>2000.]{style="color: red;"}.
+
+```{r}
+data.frame(shoredist = seq(0,3000, by=1)) %>% 
+  mutate(water_depth = case_when(shoredist<=210 ~ -0.0043*shoredist+1,
+                                 shoredist<=2000 ~ -0.000056*shoredist + 0.088,
+                                 TRUE ~0)) %>% 
+  ggplot(aes(x=shoredist, y=water_depth)) +
+  geom_line()+
+  labs(x="Horizontal shore distance (m)",
+       y="Relative suitability",
+       title="Relative risk of water depth by shore distance")
+```
+
+
 ### Calculate Water Temperature (optional)  
 
-`Enable` and so that water temperature effects are calculated. Now a series of rasters and ratio inputs are needed. 
+`Enable` and so that water temperature effects are calculated. Now rasters of the dry season (`senegal_inputs/projected_habsuit_waterTemp_dry_2019_sen.tif`) and wet season (`senegal_inputs/projected_habsuit_waterTemp_wet_2019_sen.tif`) temperature and weight these should have on overall risk (`Snail Water Tempertarue [Dry/Wet] Risk Weight`). 
 
 
-#### Dry/ Season Temperature Raster (raster)  
+#### Dry/Wet Season Temperature Raster (raster)  
 
-Rasters of air temperature in &deg;C during the dry and wet seasons. These are called `projected_habsuit_waterTemp_dry_2019_sen.tif` and `projected_habsuit_waterTemp_wet_2019_sen.tif` respectively. 
+Rasters of air temperature in &deg;C during the dry and wet seasons. These are called `senegal_inputs/projected_habsuit_waterTemp_dry_2019_sen.tif` and `senegal_inputs/projected_habsuit_waterTemp_wet_2019_sen.tif` respectively. 
+
+```{r}
+ggplot() +
+  geom_spatraster(data=temp_dry_wet)+
+  scale_fill_fermenter(na.value = "grey90")+
+  facet_wrap(~lyr)+
+  labs(fill="Water temp")
+
+hist(temp_dry_wet)
+```
+
+For the Senegal 2019 data we chose to estimate water depth based on the minimum and maximum water extent (number of water pixels across the 37-year composite). We used monthly water extent from JRC Monthly Water History v1.3 for a composite of 37 years from 1984 to 2021 because it is both open-source and accurate. Based on this we determined the best month to represent each season:  
+
+* May to represent the dry season. (Although March and April have lower precipitation, May has the lowest water extent. June is the first month with low but significant rainfall.)  
+* October to represent the wet season. (Although September has the highest precipitation, October has a slightly higher water extent.)
+
+To avoid overestimation of water extent based on anomamlous years, the mask will include pixels that have had water in at least five of the past 37 years.
 
 #### Snail Water Temp Dry & Wet Risk  
 
@@ -216,10 +346,251 @@ Here is where you choose the snail of interest and thus which species of Schisto
 
 Again, set the `Risk weight` in the model for these parameters to `1`. 
 
-## stopped here  
+For the tutorial chose `Default: Bulinus truncatus` and `Default: S. haematobium`.  
+
+The two snail temperature production functions in [Waltz et al., 2015](https://doi.org/10.1371/journal.pntd.0004217) are problematic because they do not have a maximum suitability of 1. Because we have an separate function for scalling down the impact of water temperature (`Risk`) we revised the function to not scale the effect twice. We based the revised temperature effects on the snail mortality reported in the original sources: [Pflüger 1980](https://doi.org/10.1007/bf00927532_) for Bimophalaria and [Pflüger et al. 1984](https://doi.org/10.1007/bf00929579) for Bulinus.
+
+Biomphalaria temperature production function: 
+$$
+\text{Value} = \begin{cases} 
+0 & \text{if } Temp < 16 \\ 
+-29.9111 + 5.015Temp + -0.3107Temp^2 +8.560e^{-03}Temp^3 + -8.769e^{-05}Temp^4 & \text{if } 16 \le Temp \le 35 \\ 
+0 & \text{if } Temp > 35 
+\end{cases}
+$$
+
+```{r}
+data.frame(Temp=seq(10,40, by=1)) %>% 
+  mutate(y=case_when(Temp<16 ~ 0,
+                     Temp<=35 ~ -29.9111 + 5.015e+00 * Temp + -3.107e-01 * Temp^2 +8.560e-03 * Temp^3 + -8.769e-05 * Temp^4, 
+                     TRUE ~ 0)) %>% 
+  ggplot(aes(x=Temp, y=y))+
+  geom_line()+
+  labs(title="Biomphalaria",
+       x="Water surface temp C",
+       y="Relative suitability")
+```
 
 
-## notes from Andy  
+Bulinus temperature production function:
+$$
+\text{Value} = \begin{cases} 
+0 & \text{if } Temp < 17 \\ 
+-48.173 + 8.534 * Temp + -0.5568 * Temp^2 + 1.599e^{-02} * Temp^3 + -1.697e^{-04} * Temp^4 & \text{if } 17 \le Temp \le 33 \\ 
+0 & \text{if } Temp > 33 
+\end{cases}
+$$
+
+```{r}
+data.frame(Temp=seq(10,40, by=1)) %>% 
+  mutate(y=case_when(Temp<17 ~ 0,
+                     Temp<=33 ~ -48.173 + 8.534e+00 * Temp + -5.568e-01 * Temp^2 + 1.599e-02 * Temp^3 + -1.697e-04 * Temp^4, 
+                     TRUE ~ 0)) %>% 
+  ggplot(aes(x=Temp, y=y))+
+  geom_line()+
+  labs(title="Bulinus",
+       x="Water surface temp C",
+       y="Relative suitability")
+```
+
+S. mansoni temperature production function:
+$$
+\text{Value} = \begin{cases} 
+0 & \text{if } Temp < 16 \\ 
+-0.003 \left(\frac{268}{Temp - 14.2} - 335\right) + 0.0336538 & \text{if } 16 \le Temp \le 35 \\ 
+0 & \text{if } Temp > 35 
+\end{cases}
+$$
+
+```{r}
+data.frame(Temp=seq(10,40, by=1)) %>% 
+  mutate(y=case_when(Temp<16 ~ 0,
+                     Temp<=35 ~ -0.003 * (268/(Temp - 14.2) - 335) + 0.0336538, 
+                     TRUE ~ 0)) %>% 
+  ggplot(aes(x=Temp, y=y))+
+  geom_line()+
+  labs(title="S. mansoni",
+       x="Water surface temp C",
+       y="Relative suitability")
+```
+
+S. haematobium temperature production function 
+$$
+\text{Value} = \begin{cases} 
+0 & \text{if } Temp < 17 \\ 
+-0.006 \left(\frac{295}{Temp - 15.3} - 174\right) + 0.056 & \text{if } 17 \le Temp \le 33 \\ 
+0 & \text{if } Temp > 33 
+\end{cases}
+$$
+
+
+```{r}
+data.frame(Temp=seq(10,40, by=1)) %>% 
+  mutate(y=case_when(Temp<17 ~ 0,
+                     Temp<=33 ~ -0.006 * (295/(Temp - 15.3) - 174) + 0.056, 
+                     TRUE ~ 0)) %>% 
+  ggplot(aes(x=Temp, y=y))+
+  geom_line()+
+  labs(title="S. haematobium",
+       x="Water surface temp C",
+       y="Relative suitability")
+```
+
+
+### Calculate NDVI (optional) 
+
+`Enable` and so that NDVI effects are calculated. Now rasters of the dry season (`senegal_inputs/projected_habsuit_NDVI_dry_2019_sen.tif`) and wet season (`senegal_inputs/projected_habsuit_NDVI_wet_2019_sen.tif`) NDVI and weight these should have on overall risk (`Snail Water Tempertarue [Dry/Wet] Risk Weight`). 
+
+```{r}
+ggplot() +
+  geom_spatraster(data=ndvi_dry_wet)+
+  scale_fill_fermenter(na.value = "grey90")+
+  facet_wrap(~lyr)+
+  labs(fill="NDVI")
+
+hist(ndvi_dry_wet)
+```
+
+#### Suitability Function Type  
+
+Use `Default used in paper`. Which looks like this.
+
+```{r}
+data.frame(V = seq(-1,1, by=0.1)) %>% 
+  mutate(veg_coverage = case_when(V<0 ~ 0,
+                                  V<=0.3 ~ 3.33*V,
+                                  TRUE ~1)) %>% 
+  ggplot(aes(x=V, y=veg_coverage)) +
+  geom_line() +
+  labs(title = "Vegetation coverage function",
+            x="Normalized difference vegetation index (NDVI)",
+            y="Relative suitability")
+```
+
+The user can also specify custom functions using the same parameters as described above.
+
+#### NDVI Dry/Wet Risk Weight (ratio: a decimal from 0 -1)
+
+For the tutorial use `1` for both. 
+
+### Calculate Water Velocity  
+
+For the tutorial `Disable` e.g., don't slide this to the right. 
+
+If enabled the `Default used in paper` looks like this. Or the used can manually specify a function.
+```{r}
+data.frame(river = seq(0,10,by=1)) %>% 
+  mutate(river_order = -(1/9)*river + (10/9)) %>% 
+  ggplot(aes(x=river, y=river_order))+
+  geom_line()+
+  labs(title="River order function",
+       x="River order from HydroSheds",
+       y="Relative suitability")
+```
+
+[Where does the stream order function fit in here?]{style: "color: red;"}
+```{r}
+data.frame(river = seq(0,7,by=1)) %>% 
+  mutate(river_order = 0.143*river) %>% 
+  ggplot(aes(x=river, y=river_order))+
+  geom_line()+
+  labs(title="Stream order function from (Walz et al 2015)",
+       x="Stream order from ASTER GDEM",
+       y="Relative suitability")
+```
+
+The `Risk Weight` will also need to be specified. 
+
+Method for calculating the flow velocity in “water”: use the WWF Hydrosheds Free-Flowing Rivers Network in Google Earth Engine to determine the stream lines (flow velocity only). Do an operation to assign each raster pixel in the water mask the flow-velocity value of the nearest Hydrosheds pixel.
+
+Method for calculating the flow velocity and stream order in “potential water”: use the WWF Hydrosheds Free-Flowing Rivers Network in Google Earth Engine to determine the stream lines (both flow velocity and stream order). Remove (set to N/A) the areas within the water mask.
+
+HydroSheds variables in Google Earth Engine are listed here.
+
+Walz et al. 2015 relied on Strahler Stream Order (see [Beck-Wörner et al 2007](https://doi.org/10.4269/ajtmh.2007.76.956)), which is based on a numbering system from the headwaters to the mouth, and retrieved data from the topographic drainage lines derived from ASTER GDEM. However, we think it's better to use HydroSheds River Order, which is based on average discharge.
+
+We `disable` this function in the tutorial for Senegal because we *think* this function might hold true only in environments with hills and mountains, like Cote d'Ivoire, where it was developed. We're not sure why headwaters would be less suitable than the river mouth in a flat environment like Western Senegal where the headwaters in Senegal might be suitable for snails [(e.g. seepages in Mali).]{style: "color: red;"}
+
+```{r}
+data.frame(river = seq(0,10,by=1)) %>% 
+  mutate(river_order = -(1/9)*river + (10/9)) %>% 
+  ggplot(aes(x=river, y=river_order))+
+  geom_line()+
+  labs(title="River order function",
+       x="River order from HydroSheds",
+       y="Relative suitability")
+```
+
+[Where does the stream order function fit in here?]{style: "color: red;"}
+```{r}
+data.frame(river = seq(0,7,by=1)) %>% 
+  mutate(river_order = 0.143*river) %>% 
+  ggplot(aes(x=river, y=river_order))+
+  geom_line()+
+  labs(title="Stream order function from (Walz et al 2015)",
+       x="Stream order from ASTER GDEM",
+       y="Relative suitability")
+```
+
+
+### Additional User Defined Suitability Input. (optional)
+
+These sections allow the user to define additional suitability functions. 
+
+`Disable` for the tutorial. 
+
+## Run  
+
+Now you are ready to run the model by clicking the blue Run button (1). Which shows a blank screen for a bit (2) then starts showing lots of updates (3).\  
+![screenshot click Run](run_model.png)
+
+Once that is done all of the results and input layers appear in the specified workspace. See them by either navigating to the folder in your file browser or using the shortcut provided by clicking `Open Workspace` (1) which will open the specified workspace folder in your file browser (2) 
+![screenshots of workspace](view_workspace.png)
+
+We will cover what all these files are in the [next tutorial]{style: "color= red;"}.
+
+### Optional save  
+You can also save the entire run, which will save a json file of the input paths which can be loaded as described in [Tutorial_02](/tutorials/02_sample_data). **This is not necessary**. You should be able to drag and drop that into the model. To do so click on "save as" in the left menu (1) and select `Parameters only` and `Use relative paths` (2) then click `Save`. This opens a new window where you can give the file a good name (4) and click `Save`. Back in the InVEST workbench you'll see a brief `archeiving` message.\   
+![screenshots to save datastack](save_datastack.png)
+
+The run can then be loaded by (1) clicking `load parameters from file`, (2) click on the relevant `.tzg` folder with the name you gave it above, (4) click `Open`, (5) check you are in the folder above the folder with the files (in this case `senegal_inputs`) [only matters if you checked "relative paths" when you created the file], and (5) click `Extract archeive here`. 
+
+![screenshots of loading saved run](load_saved_run.png) 
+
+Now everything you previously input is loaded in the workspace.  
+
+
+## Just the tutorial inputs please!  
+Everything called a "risk weight" is how important (e.g., relative weight) that parameter is in the model.
+
+| Name | Description | Input |  
+| --- | ---| --- |   
+| Workspace | file where results are saved to | "senegal_example_inputs" |  
+| File Suffix | if you want to save many interations of the model in the same folder add a suffix e.g. the date) | "20260205" |    
+| Area of Interest | shape file of the area you want to model | "senegal_inputs/projected_sen_aoi.gpkg" |  
+| Max decay distance | How far from water (meters) are populations impacted | "5000" |  
+| Water Presence | Binary raster of water features | "senegal_inputs/projected_basin_water_mask_nodata_sen.tif" |  
+| Population Raster | A raster representing the number of inhabitants per pixel | `senegal_inputs/population_count_projected.tif` |  
+| Default Population Suitability | Population densities suitable to transmission | "rural population max = 1000" \n "urbanization population max = 25000" |  
+| Calculate Water Depth | Function to estimate water depth based on dist. to shore | "Enable" \n "Risk weight = 1" |  
+| Calculate Water Temperature | Function to estimate water temperature suitability | "Enable" |  
+| Dry Season Temperature Raster | Raster of air temperature in the dry season | "senegal_inputs/projected_habsuit_waterTemp_dry_2019_sen.tif" |  
+| Wet Season Temperature Raster | Raster of air temperature in the dry season | "senegal_inputs/projected_habsuit_waterTemp_wet_2019_sen.tif" |  
+| Snail Water Temp Dry Risk Weight |  | "1" |  
+| Snail Water Temp Wet Risk Weight |  | "1" |  
+| Snail Suitability Function Type | Which snail species to model | "Default: Bulinus truncatus" |  
+| Parasite Water Temp Dry Risk Weight |  | "1" |  
+| Parasite Water Temp Wet Risk Weight |  | "1" |  
+| Parasite Suitability Function Type | Which snail species to model | "Default: S. haematobium" |  
+| Calculate NDVI | Include NDVI in the model | "Enable" |  
+| Suitability Function Type | default or user specified relationship with risk and NDVI | "Default used in paper" |  
+| NDVI Dry Raster | Raster of NDVI (0,1) during the dry season | "senegal_inputs/projected_habsuit_NDVI_dry_2019_sen.tif" |  
+| NDVI Dry Risk Weight |  | "1" |  
+| NDVI Wet Raster | Raster of NDVI (0,1) during the wet season | "senegal_inputs/projected_habsuit_NDVI_wet_2019_sen.tif" |  
+| NDVI Wet Risk Weight |  | "1" |  
+| Calculate Water Velocity | Function to estimate water velocity suitability | "Disable" |  
+| Additional User Defined Suitabilty Input | Allows user to add additional custom functions | "Disable" |  
+
 https://github.com/Bushytop/schisto_eeid/tree/main/data/natcap_invest
 https://colab.research.google.com/drive/1Gj8zyo4nE2ij10aNuoXjx3yiYCTGy5tR?usp=sharing#scrollTo=dylSqiUUwmA8
 [7:52 AM]in particular, the parameters to use for consistency are:

@@ -2,7 +2,9 @@
   {
     "listing": "/tutorials.html",
     "items": [
-      "/tutorials/01_invest-basics/index.html"
+      "/tutorials/01_invest-basics/index.html",
+      "/tutorials/03_model_parameters/index.html",
+      "/tutorials/02_sample_data/index.html"
     ]
   }
 ]

@@ -193,9 +193,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#population" id="toc-population" class="nav-link" data-scroll-target="#population">Population</a></li>
   <li><a href="#calculate-water-depth-optional" id="toc-calculate-water-depth-optional" class="nav-link" data-scroll-target="#calculate-water-depth-optional">Calculate Water Depth (optional)</a></li>
   <li><a href="#calculate-water-temperature-optional" id="toc-calculate-water-temperature-optional" class="nav-link" data-scroll-target="#calculate-water-temperature-optional">Calculate Water Temperature (optional)</a></li>
+  <li><a href="#calculate-ndvi-optional" id="toc-calculate-ndvi-optional" class="nav-link" data-scroll-target="#calculate-ndvi-optional">Calculate NDVI (optional)</a></li>
+  <li><a href="#calculate-water-velocity" id="toc-calculate-water-velocity" class="nav-link" data-scroll-target="#calculate-water-velocity">Calculate Water Velocity</a></li>
+  <li><a href="#additional-user-defined-suitability-input.-optional" id="toc-additional-user-defined-suitability-input.-optional" class="nav-link" data-scroll-target="#additional-user-defined-suitability-input.-optional">Additional User Defined Suitability Input. (optional)</a></li>
   </ul></li>
-  <li><a href="#stopped-here" id="toc-stopped-here" class="nav-link" data-scroll-target="#stopped-here">stopped here</a></li>
-  <li><a href="#notes-from-andy" id="toc-notes-from-andy" class="nav-link" data-scroll-target="#notes-from-andy">notes from Andy</a></li>
+  <li><a href="#run" id="toc-run" class="nav-link" data-scroll-target="#run">Run</a>
+  <ul class="collapse">
+  <li><a href="#optional-save" id="toc-optional-save" class="nav-link" data-scroll-target="#optional-save">Optional save</a></li>
+  </ul></li>
+  <li><a href="#just-the-tutorial-inputs-please" id="toc-just-the-tutorial-inputs-please" class="nav-link" data-scroll-target="#just-the-tutorial-inputs-please">Just the tutorial inputs please!</a></li>
   </ul>
 </nav>
     </div>
@@ -253,7 +259,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="water-presence-raster" class="level3">
 <h3 class="anchored" data-anchor-id="water-presence-raster">Water Presence (raster)</h3>
-<p>A raster indicating presence of water called <code>projected_basin_water_mask_nodata_sen.tif</code> in the sample data. The water mask data here is based on <span style="color: red;">Andy add citation</span> and shows water presence/absenece in 30x30 meter pixels. The water mask is potentially the most important part of the model as risk will be underestimated for an area if the water presence raster indicates there is no water, but in truth small water bodies are present. Notice in the plot the Senegal river, which runs along the Mauritania-Senegal boarder and Lac de Guiers are clearly shown.</p>
+<p>A raster indicating presence of water called <code>senegal_inputs/projected_basin_water_mask_nodata_sen.tif</code> in the sample data. The water mask data here is based on <span style="color: red;">Andy add citation</span> and shows water presence/absenece in 30x30 meter pixels. The water mask is potentially the most important part of the model as risk will be underestimated for an area if the water presence raster indicates there is no water, but in truth small water bodies are present. Notice in the plot the Senegal river, which runs along the Mauritania-Senegal boarder and Lac de Guiers are clearly shown.</p>
 <p><span style="color: red;">I can change this to be interactive so the user and zoom in and see small water pixels</span></p>
 </section>
 <section id="population" class="level3">
@@ -261,16 +267,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="population-raster-raster-m" class="level4">
 <h4 class="anchored" data-anchor-id="population-raster-raster-m">Population Raster (raster) (m)</h4>
 <p><span style="color: red;">Why is there an “m” in this title?</span></p>
-<p>A raster representing the number of inhabitants per pixel called <code>population_count_projected.tif</code>. The population data in this tutorial is from <span style="color: red;">Andy add citation</span> and shows the population estimates in ~1km pixels from <span style="color: red;">YEAR</span>. The population estimates are used to estimate the convoluted/population at risk estimates. It’s a bit hard to see because most of Senegal has a low population density, but Saint Louis (coast directly left of AOI) has a much higher population estimate.</p>
+<p>A raster representing the number of inhabitants per pixel called <code>senegal_inputs/population_count_projected.tif</code>. The population data in this tutorial is from <span style="color: red;">Andy add citation</span> and shows the population estimates in ~1km pixels from <span style="color: red;">YEAR</span>. The population estimates are used to estimate the convoluted/population at risk estimates. It’s a bit hard to see because most of Senegal has a low population density, but Saint Louis (coast directly left of AOI) has a much higher population estimate.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>popu <span class="ot">&lt;-</span> <span class="fu">rast</span>(<span class="fu">paste0</span>(fp, <span class="st">"population_count_projected.tif"</span>))</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>pbase <span class="sc">+</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_spatraster</span>(<span class="at">data=</span>popu)<span class="sc">+</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_fermenter</span>(<span class="at">na.value =</span> <span class="st">"transparent"</span>)<span class="sc">+</span></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_spatvector</span>(<span class="at">data=</span>aoi, <span class="at">color=</span><span class="st">"red"</span>, <span class="at">fill=</span><span class="st">"transparent"</span>, <span class="at">lwd=</span><span class="dv">1</span>)<span class="sc">+</span></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text</span>(<span class="fu">aes</span>(<span class="at">x=</span>(<span class="fu">xmin</span>(aoi)<span class="sc">+</span><span class="fl">7e4</span>), <span class="at">y=</span><span class="fu">ymin</span>(aoi)<span class="sc">+</span><span class="fl">5e4</span>, <span class="at">label=</span><span class="st">"AOI"</span>), <span class="at">size=</span><span class="dv">8</span>)<span class="sc">+</span></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">fill=</span><span class="st">"population"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>pbase <span class="sc">+</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_spatraster</span>(<span class="at">data=</span>popu)<span class="sc">+</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_fermenter</span>(<span class="at">na.value =</span> <span class="st">"transparent"</span>)<span class="sc">+</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_spatvector</span>(<span class="at">data=</span>aoi, <span class="at">color=</span><span class="st">"red"</span>, <span class="at">fill=</span><span class="st">"transparent"</span>, <span class="at">lwd=</span><span class="dv">1</span>)<span class="sc">+</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text</span>(<span class="fu">aes</span>(<span class="at">x=</span>(<span class="fu">xmin</span>(aoi)<span class="sc">+</span><span class="fl">7e4</span>), <span class="at">y=</span><span class="fu">ymin</span>(aoi)<span class="sc">+</span><span class="fl">5e4</span>, <span class="at">label=</span><span class="st">"AOI"</span>), <span class="at">size=</span><span class="dv">8</span>)<span class="sc">+</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">fill=</span><span class="st">"population"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="index_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid" width="672"></p>
 </div>
@@ -281,30 +285,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p><span style="color: red;">population is misspelled!</span></p>
 <p>Slide bar with the option to Use the Default Population Suitability (slide right) or input your own function (slide left). The default option is a linear increase in risk to rural max and an s-curve decrease in risk from rural max to urbanization max.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>rural_max <span class="ot">=</span> <span class="dv">1000</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>urban_max <span class="ot">=</span> <span class="dv">25000</span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>h_range <span class="ot">=</span> urban_max <span class="sc">-</span> rural_max</span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>midpoint <span class="ot">&lt;-</span> rural_max <span class="sc">+</span> h_range<span class="sc">/</span><span class="dv">2</span></span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>k <span class="ot">=</span> <span class="dv">10</span> <span class="sc">/</span> h_range</span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="fu">data.frame</span>(<span class="at">h=</span><span class="fu">seq</span>(<span class="dv">0</span>, <span class="fl">3e4</span>, <span class="at">by=</span><span class="dv">1000</span>)) <span class="sc">%&gt;%</span> </span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">linear_scurve =</span><span class="fu">case_when</span>(h<span class="sc">&lt;</span><span class="dv">2</span> <span class="sc">~</span> <span class="dv">0</span>,</span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>                                  h<span class="sc">&lt;=</span>rural_max <span class="sc">~</span> rural_max<span class="sc">/</span>h,</span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>                                  h<span class="sc">&gt;</span>rural_max <span class="sc">~</span> <span class="dv">1</span><span class="sc">/</span>(<span class="dv">1</span> <span class="sc">+</span> <span class="fu">exp</span>(k <span class="sc">*</span> (h <span class="sc">-</span> midpoint))),</span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>                                  <span class="cn">TRUE</span> <span class="sc">~</span> <span class="dv">0</span>)) <span class="sc">%&gt;%</span> </span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x=</span>h, <span class="at">y=</span>linear_scurve)) <span class="sc">+</span></span>
-<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>()<span class="sc">+</span></span>
-<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x=</span><span class="fu">bquote</span>(<span class="st">"Human population per "</span>(km<span class="sc">^</span><span class="dv">2</span>)),</span>
-<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>       <span class="at">y=</span><span class="st">"Relative transmission risk"</span>,</span>
-<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>       <span class="at">title=</span><span class="st">"Default population suitability function"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="index_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid" width="672"></p>
 </div>
 </div>
 <p>If the default is used the next two options are <code>Rural Population Max</code> and <code>Urbanization Population Max</code>.&nbsp; <img src="pop_suitability_default.png" class="img-fluid" alt="screenshot of default population suitabilty"><br>
 </p>
-<p>For the tutorial use <code>Rural Population Max</code> = <code>1000</code> and <code>Urbanization Population Max</code> = <code>25000</code>. These values are based on at what respective population density you expect risk to be highest (1; rural) and lowest (0; urban). <span style="color: red;">Andy confirm this:</span> We estimated these values based on our local knowledge of at what population density transmission is highest before WASH measure are implemented and our estimate at which population density people are not exposed to surface water around their homes (e.g.&nbsp;city with piped water and plumming).</p>
+<p>For the tutorial use <code>Rural Population Max</code> = <code>1000</code> and <code>Urbanization Population Max</code> = <code>25000</code>. These values are based on at what respective population density you expect risk to be highest (1; rural) and lowest (0; urban). <span style="color: red;">Andy confirm this:</span> We estimated these values based on our local knowledge of at what population density transmission is highest before WASH measure are implemented and our estimate at which population density people are not exposed to surface water around their homes (e.g.&nbsp;city with piped water and plumbing).</p>
 </section>
 <section id="dont-use-default-population-suitability-optional" class="level4">
 <h4 class="anchored" data-anchor-id="dont-use-default-population-suitability-optional">Don’t Use Default Population Suitability (optional)</h4>
@@ -355,19 +342,166 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </table>
 <p><span style="color: red;">Here I completely don’t understand how the trapezoid would work / how two linear functions are different from a trapezoid</span></p>
 <p><span style="color: red;">helpful to add some plots here explaining more?</span></p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="do">## linear</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">data.frame</span>(<span class="at">h =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">100</span>),</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>           <span class="at">y =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>),</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>           <span class="at">lab =</span> <span class="fu">c</span>(<span class="st">"(Xa, Ya)"</span>, <span class="st">"(Xz, Yz)"</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x=</span>h, <span class="at">y=</span>y)) <span class="sc">+</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">color=</span><span class="st">"blue"</span>) <span class="sc">+</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text</span>(<span class="fu">aes</span>(<span class="at">label=</span>lab), <span class="at">position =</span> <span class="fu">position_nudge</span>(<span class="at">x=</span><span class="fu">c</span>(<span class="dv">5</span>, <span class="sc">-</span><span class="dv">5</span>))) <span class="sc">+</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x=</span><span class="fu">bquote</span>(<span class="st">"Human population per "</span>(km<span class="sc">^</span><span class="dv">2</span>)),</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>       <span class="at">y=</span><span class="st">"Relative transmission risk"</span>,</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>       <span class="at">title=</span><span class="st">"Linear"</span>) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="index_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid" width="672"></p>
+</div>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="do">## exponential  </span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>Yin <span class="ot">&lt;-</span> <span class="dv">100</span> <span class="co">#initial or intercept?</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>Xmed <span class="ot">&lt;-</span> <span class="cn">NA</span> <span class="co">#inflection point?</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>Decay_factor <span class="ot">&lt;-</span> <span class="fl">0.05</span> </span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>Max_dist <span class="ot">&lt;-</span> <span class="dv">100</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="fu">data.frame</span>(<span class="at">h =</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">100</span>, <span class="at">by=</span><span class="dv">1</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">y =</span> Yin <span class="sc">*</span> <span class="fu">exp</span>(<span class="sc">-</span>Decay_factor <span class="sc">*</span> h)) <span class="sc">%&gt;%</span> </span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x=</span>h, <span class="at">y=</span>y)) <span class="sc">+</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">color=</span><span class="st">"blue"</span>) <span class="sc">+</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x=</span><span class="fu">bquote</span>(<span class="st">"Human population per "</span>(km<span class="sc">^</span><span class="dv">2</span>, h)),</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>       <span class="at">y=</span><span class="st">"Relative transmission risk"</span>,</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>       <span class="at">title=</span><span class="st">"Exponential"</span>,</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a>       <span class="at">subtitle =</span> <span class="fu">bquote</span>(Y<span class="sc">==</span>Yin<span class="sc">%.%</span>e<span class="sc">^</span><span class="st">"Decay_factor*h"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="index_files/figure-html/unnamed-chunk-7-2.png" class="img-fluid" width="672"></p>
+</div>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="do">## scurve</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>Yin <span class="ot">&lt;-</span> <span class="dv">100</span> <span class="co">#min?</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>Yfin <span class="ot">&lt;-</span> <span class="dv">0</span> <span class="co">#max?</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>Xmed <span class="ot">&lt;-</span> <span class="dv">50</span> <span class="co">#midpoint</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>Inv_slope <span class="ot">&lt;-</span> <span class="dv">10</span><span class="sc">/</span>(Yfin <span class="sc">-</span> Yin) <span class="co">#k?</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="fu">data.frame</span>(<span class="at">h=</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">100</span>, <span class="at">by=</span><span class="dv">1</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">y =</span> <span class="dv">1</span><span class="sc">/</span>(<span class="dv">1</span> <span class="sc">+</span> <span class="fu">exp</span>(Inv_slope <span class="sc">*</span> (h <span class="sc">-</span> Xmed)))) <span class="sc">%&gt;%</span> </span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x=</span>h, <span class="at">y=</span>y)) <span class="sc">+</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">color=</span><span class="st">"blue"</span>) <span class="sc">+</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> Xmed, <span class="at">lty=</span><span class="dv">2</span>) <span class="sc">+</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text</span>(<span class="fu">aes</span>(<span class="at">x=</span>Xmed<span class="sc">+</span><span class="dv">5</span>, <span class="at">y=</span><span class="dv">1</span>, <span class="at">label=</span><span class="st">"Xmed"</span>))<span class="sc">+</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x=</span><span class="fu">bquote</span>(<span class="st">"Human population per "</span>(km<span class="sc">^</span><span class="dv">2</span>, h)),</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>       <span class="at">y=</span><span class="st">"Relative transmission risk"</span>,</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>       <span class="at">title=</span><span class="st">"Scurve"</span>,</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>       <span class="at">subtitle =</span> <span class="fu">bquote</span>(Y<span class="sc">==</span><span class="dv">1</span><span class="sc">/</span>{<span class="dv">1</span> <span class="sc">+</span> e<span class="sc">^</span>{<span class="st">"Inv_slope"</span> <span class="sc">%.%</span> (h <span class="sc">-</span> Xmed)}}<span class="sc">*</span><span class="st">" ; Inv_slope = 10/(Yfin-Yin)"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning in geom_text(aes(x = Xmed + 5, y = 1, label = "Xmed")): All aesthetics have length 1, but the data has 101 rows.
+ℹ Please consider using `annotate()` or provide this layer with data containing
+  a single row.</code></pre>
+</div>
+<div class="cell-output-display">
+<p><img src="index_files/figure-html/unnamed-chunk-7-3.png" class="img-fluid" width="672"></p>
+</div>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="do">## trapazoid</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="fu">data.frame</span>(<span class="at">x =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">40</span>, <span class="dv">60</span>, <span class="dv">100</span>),</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>           <span class="at">y =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="fl">0.5</span>, <span class="dv">1</span>, <span class="fl">0.5</span>),</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>           <span class="at">lab =</span> <span class="fu">c</span>(<span class="st">"a"</span>, <span class="st">"b"</span>, <span class="st">"c"</span>, <span class="st">"z"</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x=</span>x, <span class="at">y=</span>y)) <span class="sc">+</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">color=</span><span class="st">"blue"</span>) <span class="sc">+</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>() <span class="sc">+</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text</span>(<span class="fu">aes</span>(<span class="at">label=</span>lab), <span class="at">position =</span> <span class="fu">position_nudge</span>(<span class="at">x=</span><span class="fu">c</span>(<span class="dv">5</span>, <span class="sc">-</span><span class="dv">5</span>))) <span class="sc">+</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x=</span><span class="fu">bquote</span>(<span class="st">"Human population per "</span>(km<span class="sc">^</span><span class="dv">2</span>)),</span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>       <span class="at">y=</span><span class="st">"Relative transmission risk"</span>,</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>       <span class="at">title=</span><span class="st">"Trapezoid"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="index_files/figure-html/unnamed-chunk-7-4.png" class="img-fluid" width="672"></p>
+</div>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="do">## gaussian</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>my_mean <span class="ot">&lt;-</span> <span class="dv">50</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>my_sd <span class="ot">&lt;-</span> <span class="dv">20</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>Lb <span class="ot">&lt;-</span> <span class="dv">20</span> <span class="co">#lower bound?</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>Ub <span class="ot">&lt;-</span> <span class="dv">80</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="fu">data.frame</span>(<span class="at">h=</span> <span class="fu">seq</span>(<span class="dv">0</span>, <span class="dv">100</span>, <span class="at">by=</span><span class="dv">1</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(h) <span class="sc">%&gt;%</span> </span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">y =</span> <span class="fu">pnorm</span>(h, <span class="at">mean=</span>my_mean, <span class="at">sd=</span>my_sd),</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>         <span class="at">y =</span> <span class="fu">case_when</span>(h <span class="sc">&lt;=</span> Lb <span class="sc">~</span> <span class="dv">0</span>, </span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>                       h <span class="sc">&gt;=</span> Ub <span class="sc">~</span> <span class="dv">1</span>,</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>                       <span class="cn">TRUE</span> <span class="sc">~</span> y)) <span class="sc">%&gt;%</span> </span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x=</span>h, <span class="at">y=</span>y)) <span class="sc">+</span></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">color=</span><span class="st">"blue"</span>) <span class="sc">+</span></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="fu">c</span>(Lb, Ub), <span class="at">lty=</span><span class="dv">2</span>) <span class="sc">+</span></span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text</span>(<span class="fu">aes</span>(<span class="at">x=</span>Lb<span class="sc">+</span><span class="dv">2</span>, <span class="at">y=</span><span class="dv">1</span>, <span class="at">label=</span><span class="st">"Lb"</span>))<span class="sc">+</span></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text</span>(<span class="fu">aes</span>(<span class="at">x=</span>Ub<span class="dv">-2</span>, <span class="at">y=</span><span class="fl">0.2</span>, <span class="at">label=</span><span class="st">"Ub"</span>))<span class="sc">+</span></span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x=</span><span class="fu">bquote</span>(<span class="st">"Human population per "</span>(km<span class="sc">^</span><span class="dv">2</span>, h)),</span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>       <span class="at">y=</span><span class="st">"Relative transmission risk"</span>,</span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>       <span class="at">title=</span><span class="st">"Gaussian"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning in geom_text(aes(x = Lb + 2, y = 1, label = "Lb")): All aesthetics have length 1, but the data has 101 rows.
+ℹ Please consider using `annotate()` or provide this layer with data containing
+  a single row.</code></pre>
+</div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning in geom_text(aes(x = Ub - 2, y = 0.2, label = "Ub")): All aesthetics have length 1, but the data has 101 rows.
+ℹ Please consider using `annotate()` or provide this layer with data containing
+  a single row.</code></pre>
+</div>
+<div class="cell-output-display">
+<p><img src="index_files/figure-html/unnamed-chunk-7-5.png" class="img-fluid" width="672"></p>
+</div>
+</div>
 </section>
 </section>
 <section id="calculate-water-depth-optional" class="level3">
 <h3 class="anchored" data-anchor-id="calculate-water-depth-optional">Calculate Water Depth (optional)</h3>
 <p>Water depth is calculated using the water presence raster input and water distance from shore as a proxy for depth.</p>
 <p>For the tutorial we are going to <code>Enable</code> this (slide to right) then fill in the <code>Water Depth Risk Weight (ratio: a decimal from 0-1)</code> = <code>1</code>. The weight this factor should have on overall risk.</p>
+<p>The funtion for water depth uses the distance from shore as a proxy for depth. <span style="color: red;">We may need to address why this function dips to y=0 at x=2000 but then rises to y=0.088 for values of x&gt;2000.</span>.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data.frame</span>(<span class="at">shoredist =</span> <span class="fu">seq</span>(<span class="dv">0</span>,<span class="dv">3000</span>, <span class="at">by=</span><span class="dv">1</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">water_depth =</span> <span class="fu">case_when</span>(shoredist<span class="sc">&lt;=</span><span class="dv">210</span> <span class="sc">~</span> <span class="sc">-</span><span class="fl">0.0043</span><span class="sc">*</span>shoredist<span class="sc">+</span><span class="dv">1</span>,</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>                                 shoredist<span class="sc">&lt;=</span><span class="dv">2000</span> <span class="sc">~</span> <span class="sc">-</span><span class="fl">0.000056</span><span class="sc">*</span>shoredist <span class="sc">+</span> <span class="fl">0.088</span>,</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>                                 <span class="cn">TRUE</span> <span class="sc">~</span><span class="dv">0</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x=</span>shoredist, <span class="at">y=</span>water_depth)) <span class="sc">+</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>()<span class="sc">+</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x=</span><span class="st">"Horizontal shore distance (m)"</span>,</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>       <span class="at">y=</span><span class="st">"Relative suitability"</span>,</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>       <span class="at">title=</span><span class="st">"Relative risk of water depth by shore distance"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="index_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
 </section>
 <section id="calculate-water-temperature-optional" class="level3">
 <h3 class="anchored" data-anchor-id="calculate-water-temperature-optional">Calculate Water Temperature (optional)</h3>
-<p><code>Enable</code> and so that water temperature effects are calculated. Now a series of rasters and ratio inputs are needed.</p>
-<section id="dry-season-temperature-raster-raster" class="level4">
-<h4 class="anchored" data-anchor-id="dry-season-temperature-raster-raster">Dry/ Season Temperature Raster (raster)</h4>
-<p>Rasters of air temperature in °C during the dry and wet seasons. These are called <code>projected_habsuit_waterTemp_dry_2019_sen.tif</code> and <code>projected_habsuit_waterTemp_wet_2019_sen.tif</code> respectively.</p>
+<p><code>Enable</code> and so that water temperature effects are calculated. Now rasters of the dry season (<code>senegal_inputs/projected_habsuit_waterTemp_dry_2019_sen.tif</code>) and wet season (<code>senegal_inputs/projected_habsuit_waterTemp_wet_2019_sen.tif</code>) temperature and weight these should have on overall risk (<code>Snail Water Tempertarue [Dry/Wet] Risk Weight</code>).</p>
+<section id="drywet-season-temperature-raster-raster" class="level4">
+<h4 class="anchored" data-anchor-id="drywet-season-temperature-raster-raster">Dry/Wet Season Temperature Raster (raster)</h4>
+<p>Rasters of air temperature in °C during the dry and wet seasons. These are called <code>senegal_inputs/projected_habsuit_waterTemp_dry_2019_sen.tif</code> and <code>senegal_inputs/projected_habsuit_waterTemp_wet_2019_sen.tif</code> respectively.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_spatraster</span>(<span class="at">data=</span>temp_dry_wet)<span class="sc">+</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_fermenter</span>(<span class="at">na.value =</span> <span class="st">"grey90"</span>)<span class="sc">+</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>lyr)<span class="sc">+</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">fill=</span><span class="st">"Water temp"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>&lt;SpatRaster&gt; resampled to 500490 cells.</code></pre>
+</div>
+<div class="cell-output-display">
+<p><img src="index_files/figure-html/unnamed-chunk-9-1.png" class="img-fluid" width="672"></p>
+</div>
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(temp_dry_wet)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: [hist] a sample of 0% of the cells was used (of which 99% was NA)
+Warning: [hist] a sample of 0% of the cells was used (of which 99% was NA)</code></pre>
+</div>
+<div class="cell-output-display">
+<p><img src="index_files/figure-html/unnamed-chunk-9-2.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>For the Senegal 2019 data we chose to estimate water depth based on the minimum and maximum water extent (number of water pixels across the 37-year composite). We used monthly water extent from JRC Monthly Water History v1.3 for a composite of 37 years from 1984 to 2021 because it is both open-source and accurate. Based on this we determined the best month to represent each season:</p>
+<ul>
+<li>May to represent the dry season. (Although March and April have lower precipitation, May has the lowest water extent. June is the first month with low but significant rainfall.)<br>
+</li>
+<li>October to represent the wet season. (Although September has the highest precipitation, October has a slightly higher water extent.)</li>
+</ul>
+<p>To avoid overestimation of water extent based on anomamlous years, the mask will include pixels that have had water in at least five of the past 37 years.</p>
 </section>
 <section id="snail-water-temp-dry-wet-risk" class="level4">
 <h4 class="anchored" data-anchor-id="snail-water-temp-dry-wet-risk">Snail Water Temp Dry &amp; Wet Risk</h4>
@@ -378,14 +512,372 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h4 class="anchored" data-anchor-id="snail-suitabililty-function-types">Snail Suitabililty Function Types</h4>
 <p>Here is where you choose the snail of interest and thus which species of Schistosoma the model is for. Remember <em>Bulinus truncatus</em> <span class="math inline">\(\to\)</span> <em>S. haematobium</em> and <em>Biomphalaria</em> <span class="math inline">\(\to\)</span> <em>S. mansoni</em>. The different snail genera have different thermal envelopes thus this will change the risk-temperature relationship. Alternatively, a function (linear, exponential, scurve, trapazoidal, gaussian) with the parameters decribed above can be used.</p>
 <p>Again, set the <code>Risk weight</code> in the model for these parameters to <code>1</code>.</p>
+<p>For the tutorial chose <code>Default: Bulinus truncatus</code> and <code>Default: S. haematobium</code>.</p>
+<p>The two snail temperature production functions in <a href="https://doi.org/10.1371/journal.pntd.0004217">Waltz et al., 2015</a> are problematic because they do not have a maximum suitability of 1. Because we have an separate function for scalling down the impact of water temperature (<code>Risk</code>) we revised the function to not scale the effect twice. We based the revised temperature effects on the snail mortality reported in the original sources: <a href="https://doi.org/10.1007/bf00927532_">Pflüger 1980</a> for Bimophalaria and <a href="https://doi.org/10.1007/bf00929579">Pflüger et al.&nbsp;1984</a> for Bulinus.</p>
+<p>Biomphalaria temperature production function: <span class="math display">\[
+\text{Value} = \begin{cases}
+0 &amp; \text{if } Temp &lt; 16 \\
+-29.9111 + 5.015Temp + -0.3107Temp^2 +8.560e^{-03}Temp^3 + -8.769e^{-05}Temp^4 &amp; \text{if } 16 \le Temp \le 35 \\
+0 &amp; \text{if } Temp &gt; 35
+\end{cases}
+\]</span></p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data.frame</span>(<span class="at">Temp=</span><span class="fu">seq</span>(<span class="dv">10</span>,<span class="dv">40</span>, <span class="at">by=</span><span class="dv">1</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">y=</span><span class="fu">case_when</span>(Temp<span class="sc">&lt;</span><span class="dv">16</span> <span class="sc">~</span> <span class="dv">0</span>,</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>                     Temp<span class="sc">&lt;=</span><span class="dv">35</span> <span class="sc">~</span> <span class="sc">-</span><span class="fl">29.9111</span> <span class="sc">+</span> <span class="fl">5.015e+00</span> <span class="sc">*</span> Temp <span class="sc">+</span> <span class="sc">-</span><span class="fl">3.107e-01</span> <span class="sc">*</span> Temp<span class="sc">^</span><span class="dv">2</span> <span class="sc">+</span><span class="fl">8.560e-03</span> <span class="sc">*</span> Temp<span class="sc">^</span><span class="dv">3</span> <span class="sc">+</span> <span class="sc">-</span><span class="fl">8.769e-05</span> <span class="sc">*</span> Temp<span class="sc">^</span><span class="dv">4</span>, </span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>                     <span class="cn">TRUE</span> <span class="sc">~</span> <span class="dv">0</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x=</span>Temp, <span class="at">y=</span>y))<span class="sc">+</span></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>()<span class="sc">+</span></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title=</span><span class="st">"Biomphalaria"</span>,</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>       <span class="at">x=</span><span class="st">"Water surface temp C"</span>,</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>       <span class="at">y=</span><span class="st">"Relative suitability"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="index_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>Bulinus temperature production function: <span class="math display">\[
+\text{Value} = \begin{cases}
+0 &amp; \text{if } Temp &lt; 17 \\
+-48.173 + 8.534 * Temp + -0.5568 * Temp^2 + 1.599e^{-02} * Temp^3 + -1.697e^{-04} * Temp^4 &amp; \text{if } 17 \le Temp \le 33 \\
+0 &amp; \text{if } Temp &gt; 33
+\end{cases}
+\]</span></p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data.frame</span>(<span class="at">Temp=</span><span class="fu">seq</span>(<span class="dv">10</span>,<span class="dv">40</span>, <span class="at">by=</span><span class="dv">1</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">y=</span><span class="fu">case_when</span>(Temp<span class="sc">&lt;</span><span class="dv">17</span> <span class="sc">~</span> <span class="dv">0</span>,</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>                     Temp<span class="sc">&lt;=</span><span class="dv">33</span> <span class="sc">~</span> <span class="sc">-</span><span class="fl">48.173</span> <span class="sc">+</span> <span class="fl">8.534e+00</span> <span class="sc">*</span> Temp <span class="sc">+</span> <span class="sc">-</span><span class="fl">5.568e-01</span> <span class="sc">*</span> Temp<span class="sc">^</span><span class="dv">2</span> <span class="sc">+</span> <span class="fl">1.599e-02</span> <span class="sc">*</span> Temp<span class="sc">^</span><span class="dv">3</span> <span class="sc">+</span> <span class="sc">-</span><span class="fl">1.697e-04</span> <span class="sc">*</span> Temp<span class="sc">^</span><span class="dv">4</span>, </span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>                     <span class="cn">TRUE</span> <span class="sc">~</span> <span class="dv">0</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x=</span>Temp, <span class="at">y=</span>y))<span class="sc">+</span></span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>()<span class="sc">+</span></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title=</span><span class="st">"Bulinus"</span>,</span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>       <span class="at">x=</span><span class="st">"Water surface temp C"</span>,</span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>       <span class="at">y=</span><span class="st">"Relative suitability"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="index_files/figure-html/unnamed-chunk-11-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>S. mansoni temperature production function: <span class="math display">\[
+\text{Value} = \begin{cases}
+0 &amp; \text{if } Temp &lt; 16 \\
+-0.003 \left(\frac{268}{Temp - 14.2} - 335\right) + 0.0336538 &amp; \text{if } 16 \le Temp \le 35 \\
+0 &amp; \text{if } Temp &gt; 35
+\end{cases}
+\]</span></p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data.frame</span>(<span class="at">Temp=</span><span class="fu">seq</span>(<span class="dv">10</span>,<span class="dv">40</span>, <span class="at">by=</span><span class="dv">1</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">y=</span><span class="fu">case_when</span>(Temp<span class="sc">&lt;</span><span class="dv">16</span> <span class="sc">~</span> <span class="dv">0</span>,</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>                     Temp<span class="sc">&lt;=</span><span class="dv">35</span> <span class="sc">~</span> <span class="sc">-</span><span class="fl">0.003</span> <span class="sc">*</span> (<span class="dv">268</span><span class="sc">/</span>(Temp <span class="sc">-</span> <span class="fl">14.2</span>) <span class="sc">-</span> <span class="dv">335</span>) <span class="sc">+</span> <span class="fl">0.0336538</span>, </span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>                     <span class="cn">TRUE</span> <span class="sc">~</span> <span class="dv">0</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x=</span>Temp, <span class="at">y=</span>y))<span class="sc">+</span></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>()<span class="sc">+</span></span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title=</span><span class="st">"S. mansoni"</span>,</span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>       <span class="at">x=</span><span class="st">"Water surface temp C"</span>,</span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>       <span class="at">y=</span><span class="st">"Relative suitability"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="index_files/figure-html/unnamed-chunk-12-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>S. haematobium temperature production function <span class="math display">\[
+\text{Value} = \begin{cases}
+0 &amp; \text{if } Temp &lt; 17 \\
+-0.006 \left(\frac{295}{Temp - 15.3} - 174\right) + 0.056 &amp; \text{if } 17 \le Temp \le 33 \\
+0 &amp; \text{if } Temp &gt; 33
+\end{cases}
+\]</span></p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data.frame</span>(<span class="at">Temp=</span><span class="fu">seq</span>(<span class="dv">10</span>,<span class="dv">40</span>, <span class="at">by=</span><span class="dv">1</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">y=</span><span class="fu">case_when</span>(Temp<span class="sc">&lt;</span><span class="dv">17</span> <span class="sc">~</span> <span class="dv">0</span>,</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>                     Temp<span class="sc">&lt;=</span><span class="dv">33</span> <span class="sc">~</span> <span class="sc">-</span><span class="fl">0.006</span> <span class="sc">*</span> (<span class="dv">295</span><span class="sc">/</span>(Temp <span class="sc">-</span> <span class="fl">15.3</span>) <span class="sc">-</span> <span class="dv">174</span>) <span class="sc">+</span> <span class="fl">0.056</span>, </span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>                     <span class="cn">TRUE</span> <span class="sc">~</span> <span class="dv">0</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x=</span>Temp, <span class="at">y=</span>y))<span class="sc">+</span></span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>()<span class="sc">+</span></span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title=</span><span class="st">"S. haematobium"</span>,</span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>       <span class="at">x=</span><span class="st">"Water surface temp C"</span>,</span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>       <span class="at">y=</span><span class="st">"Relative suitability"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="index_files/figure-html/unnamed-chunk-13-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
 </section>
 </section>
+<section id="calculate-ndvi-optional" class="level3">
+<h3 class="anchored" data-anchor-id="calculate-ndvi-optional">Calculate NDVI (optional)</h3>
+<p><code>Enable</code> and so that NDVI effects are calculated. Now rasters of the dry season (<code>senegal_inputs/projected_habsuit_NDVI_dry_2019_sen.tif</code>) and wet season (<code>senegal_inputs/projected_habsuit_NDVI_wet_2019_sen.tif</code>) NDVI and weight these should have on overall risk (<code>Snail Water Tempertarue [Dry/Wet] Risk Weight</code>).</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_spatraster</span>(<span class="at">data=</span>ndvi_dry_wet)<span class="sc">+</span></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_fermenter</span>(<span class="at">na.value =</span> <span class="st">"grey90"</span>)<span class="sc">+</span></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>lyr)<span class="sc">+</span></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">fill=</span><span class="st">"NDVI"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>&lt;SpatRaster&gt; resampled to 500490 cells.</code></pre>
+</div>
+<div class="cell-output-display">
+<p><img src="index_files/figure-html/unnamed-chunk-14-1.png" class="img-fluid" width="672"></p>
+</div>
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(ndvi_dry_wet)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Warning: [hist] a sample of 0% of the cells was used (of which 99% was NA)
+Warning: [hist] a sample of 0% of the cells was used (of which 99% was NA)</code></pre>
+</div>
+<div class="cell-output-display">
+<p><img src="index_files/figure-html/unnamed-chunk-14-2.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<section id="suitability-function-type" class="level4">
+<h4 class="anchored" data-anchor-id="suitability-function-type">Suitability Function Type</h4>
+<p>Use <code>Default used in paper</code>. Which looks like this.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data.frame</span>(<span class="at">V =</span> <span class="fu">seq</span>(<span class="sc">-</span><span class="dv">1</span>,<span class="dv">1</span>, <span class="at">by=</span><span class="fl">0.1</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">veg_coverage =</span> <span class="fu">case_when</span>(V<span class="sc">&lt;</span><span class="dv">0</span> <span class="sc">~</span> <span class="dv">0</span>,</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>                                  V<span class="sc">&lt;=</span><span class="fl">0.3</span> <span class="sc">~</span> <span class="fl">3.33</span><span class="sc">*</span>V,</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>                                  <span class="cn">TRUE</span> <span class="sc">~</span><span class="dv">1</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x=</span>V, <span class="at">y=</span>veg_coverage)) <span class="sc">+</span></span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>() <span class="sc">+</span></span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Vegetation coverage function"</span>,</span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>            <span class="at">x=</span><span class="st">"Normalized difference vegetation index (NDVI)"</span>,</span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>            <span class="at">y=</span><span class="st">"Relative suitability"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="index_files/figure-html/unnamed-chunk-15-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>The user can also specify custom functions using the same parameters as described above.</p>
 </section>
-<section id="stopped-here" class="level2">
-<h2 class="anchored" data-anchor-id="stopped-here">stopped here</h2>
+<section id="ndvi-drywet-risk-weight-ratio-a-decimal-from-0--1" class="level4">
+<h4 class="anchored" data-anchor-id="ndvi-drywet-risk-weight-ratio-a-decimal-from-0--1">NDVI Dry/Wet Risk Weight (ratio: a decimal from 0 -1)</h4>
+<p>For the tutorial use <code>1</code> for both.</p>
 </section>
-<section id="notes-from-andy" class="level2">
-<h2 class="anchored" data-anchor-id="notes-from-andy">notes from Andy</h2>
+</section>
+<section id="calculate-water-velocity" class="level3">
+<h3 class="anchored" data-anchor-id="calculate-water-velocity">Calculate Water Velocity</h3>
+<p>For the tutorial <code>Disable</code> e.g., don’t slide this to the right.</p>
+<p>If enabled the <code>Default used in paper</code> looks like this. Or the used can manually specify a function.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data.frame</span>(<span class="at">river =</span> <span class="fu">seq</span>(<span class="dv">0</span>,<span class="dv">10</span>,<span class="at">by=</span><span class="dv">1</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">river_order =</span> <span class="sc">-</span>(<span class="dv">1</span><span class="sc">/</span><span class="dv">9</span>)<span class="sc">*</span>river <span class="sc">+</span> (<span class="dv">10</span><span class="sc">/</span><span class="dv">9</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x=</span>river, <span class="at">y=</span>river_order))<span class="sc">+</span></span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>()<span class="sc">+</span></span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title=</span><span class="st">"River order function"</span>,</span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>       <span class="at">x=</span><span class="st">"River order from HydroSheds"</span>,</span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>       <span class="at">y=</span><span class="st">"Relative suitability"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="index_files/figure-html/unnamed-chunk-16-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>[Where does the stream order function fit in here?]{style: “color: red;”}</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data.frame</span>(<span class="at">river =</span> <span class="fu">seq</span>(<span class="dv">0</span>,<span class="dv">7</span>,<span class="at">by=</span><span class="dv">1</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">river_order =</span> <span class="fl">0.143</span><span class="sc">*</span>river) <span class="sc">%&gt;%</span> </span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x=</span>river, <span class="at">y=</span>river_order))<span class="sc">+</span></span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>()<span class="sc">+</span></span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title=</span><span class="st">"Stream order function from (Walz et al 2015)"</span>,</span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>       <span class="at">x=</span><span class="st">"Stream order from ASTER GDEM"</span>,</span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>       <span class="at">y=</span><span class="st">"Relative suitability"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="index_files/figure-html/unnamed-chunk-17-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>The <code>Risk Weight</code> will also need to be specified.</p>
+<p>Method for calculating the flow velocity in “water”: use the WWF Hydrosheds Free-Flowing Rivers Network in Google Earth Engine to determine the stream lines (flow velocity only). Do an operation to assign each raster pixel in the water mask the flow-velocity value of the nearest Hydrosheds pixel.</p>
+<p>Method for calculating the flow velocity and stream order in “potential water”: use the WWF Hydrosheds Free-Flowing Rivers Network in Google Earth Engine to determine the stream lines (both flow velocity and stream order). Remove (set to N/A) the areas within the water mask.</p>
+<p>HydroSheds variables in Google Earth Engine are listed here.</p>
+<p>Walz et al.&nbsp;2015 relied on Strahler Stream Order (see <a href="https://doi.org/10.4269/ajtmh.2007.76.956">Beck-Wörner et al 2007</a>), which is based on a numbering system from the headwaters to the mouth, and retrieved data from the topographic drainage lines derived from ASTER GDEM. However, we think it’s better to use HydroSheds River Order, which is based on average discharge.</p>
+<p>We <code>disable</code> this function in the tutorial for Senegal because we <em>think</em> this function might hold true only in environments with hills and mountains, like Cote d’Ivoire, where it was developed. We’re not sure why headwaters would be less suitable than the river mouth in a flat environment like Western Senegal where the headwaters in Senegal might be suitable for snails [(e.g.&nbsp;seepages in Mali).]{style: “color: red;”}</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data.frame</span>(<span class="at">river =</span> <span class="fu">seq</span>(<span class="dv">0</span>,<span class="dv">10</span>,<span class="at">by=</span><span class="dv">1</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">river_order =</span> <span class="sc">-</span>(<span class="dv">1</span><span class="sc">/</span><span class="dv">9</span>)<span class="sc">*</span>river <span class="sc">+</span> (<span class="dv">10</span><span class="sc">/</span><span class="dv">9</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x=</span>river, <span class="at">y=</span>river_order))<span class="sc">+</span></span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>()<span class="sc">+</span></span>
+<span id="cb26-5"><a href="#cb26-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title=</span><span class="st">"River order function"</span>,</span>
+<span id="cb26-6"><a href="#cb26-6" aria-hidden="true" tabindex="-1"></a>       <span class="at">x=</span><span class="st">"River order from HydroSheds"</span>,</span>
+<span id="cb26-7"><a href="#cb26-7" aria-hidden="true" tabindex="-1"></a>       <span class="at">y=</span><span class="st">"Relative suitability"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="index_files/figure-html/unnamed-chunk-18-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>[Where does the stream order function fit in here?]{style: “color: red;”}</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data.frame</span>(<span class="at">river =</span> <span class="fu">seq</span>(<span class="dv">0</span>,<span class="dv">7</span>,<span class="at">by=</span><span class="dv">1</span>)) <span class="sc">%&gt;%</span> </span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">river_order =</span> <span class="fl">0.143</span><span class="sc">*</span>river) <span class="sc">%&gt;%</span> </span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x=</span>river, <span class="at">y=</span>river_order))<span class="sc">+</span></span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>()<span class="sc">+</span></span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title=</span><span class="st">"Stream order function from (Walz et al 2015)"</span>,</span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>       <span class="at">x=</span><span class="st">"Stream order from ASTER GDEM"</span>,</span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a>       <span class="at">y=</span><span class="st">"Relative suitability"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="index_files/figure-html/unnamed-chunk-19-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+<section id="additional-user-defined-suitability-input.-optional" class="level3">
+<h3 class="anchored" data-anchor-id="additional-user-defined-suitability-input.-optional">Additional User Defined Suitability Input. (optional)</h3>
+<p>These sections allow the user to define additional suitability functions.</p>
+<p><code>Disable</code> for the tutorial.</p>
+</section>
+</section>
+<section id="run" class="level2">
+<h2 class="anchored" data-anchor-id="run">Run</h2>
+<p>Now you are ready to run the model by clicking the blue Run button (1). Which shows a blank screen for a bit (2) then starts showing lots of updates (3).&nbsp; <img src="run_model.png" class="img-fluid" alt="screenshot click Run"></p>
+<p>Once that is done all of the results and input layers appear in the specified workspace. See them by either navigating to the folder in your file browser or using the shortcut provided by clicking <code>Open Workspace</code> (1) which will open the specified workspace folder in your file browser (2) <img src="view_workspace.png" class="img-fluid" alt="screenshots of workspace"></p>
+<p>We will cover what all these files are in the [next tutorial]{style: “color= red;”}.</p>
+<section id="optional-save" class="level3">
+<h3 class="anchored" data-anchor-id="optional-save">Optional save</h3>
+<p>You can also save the entire run, which will save a json file of the input paths which can be loaded as described in <a href="../../tutorials/02_sample_data">Tutorial_02</a>. <strong>This is not necessary</strong>. You should be able to drag and drop that into the model. To do so click on “save as” in the left menu (1) and select <code>Parameters only</code> and <code>Use relative paths</code> (2) then click <code>Save</code>. This opens a new window where you can give the file a good name (4) and click <code>Save</code>. Back in the InVEST workbench you’ll see a brief <code>archeiving</code> message.&nbsp;<br>
+<img src="save_datastack.png" class="img-fluid" alt="screenshots to save datastack"></p>
+<p>The run can then be loaded by (1) clicking <code>load parameters from file</code>, (2) click on the relevant <code>.tzg</code> folder with the name you gave it above, (4) click <code>Open</code>, (5) check you are in the folder above the folder with the files (in this case <code>senegal_inputs</code>) [only matters if you checked “relative paths” when you created the file], and (5) click <code>Extract archeive here</code>.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="load_saved_run.png" class="img-fluid figure-img"></p>
+<figcaption class="figure-caption">screenshots of loading saved run</figcaption>
+</figure>
+</div>
+<p>Now everything you previously input is loaded in the workspace.</p>
+</section>
+</section>
+<section id="just-the-tutorial-inputs-please" class="level2">
+<h2 class="anchored" data-anchor-id="just-the-tutorial-inputs-please">Just the tutorial inputs please!</h2>
+<p>Everything called a “risk weight” is how important (e.g., relative weight) that parameter is in the model.</p>
+<table class="table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 33%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Description</th>
+<th>Input</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Workspace</td>
+<td>file where results are saved to</td>
+<td>“senegal_example_inputs”</td>
+</tr>
+<tr class="even">
+<td>File Suffix</td>
+<td>if you want to save many interations of the model in the same folder add a suffix e.g.&nbsp;the date)</td>
+<td>“20260205”</td>
+</tr>
+<tr class="odd">
+<td>Area of Interest</td>
+<td>shape file of the area you want to model</td>
+<td>“senegal_inputs/projected_sen_aoi.gpkg”</td>
+</tr>
+<tr class="even">
+<td>Max decay distance</td>
+<td>How far from water (meters) are populations impacted</td>
+<td>“5000”</td>
+</tr>
+<tr class="odd">
+<td>Water Presence</td>
+<td>Binary raster of water features</td>
+<td>“senegal_inputs/projected_basin_water_mask_nodata_sen.tif”</td>
+</tr>
+<tr class="even">
+<td>Population Raster</td>
+<td>A raster representing the number of inhabitants per pixel</td>
+<td><code>senegal_inputs/population_count_projected.tif</code></td>
+</tr>
+<tr class="odd">
+<td>Default Population Suitability</td>
+<td>Population densities suitable to transmission</td>
+<td>“rural population max = 1000” “urbanization population max = 25000”</td>
+</tr>
+<tr class="even">
+<td>Calculate Water Depth</td>
+<td>Function to estimate water depth based on dist. to shore</td>
+<td>“Enable” “Risk weight = 1”</td>
+</tr>
+<tr class="odd">
+<td>Calculate Water Temperature</td>
+<td>Function to estimate water temperature suitability</td>
+<td>“Enable”</td>
+</tr>
+<tr class="even">
+<td>Dry Season Temperature Raster</td>
+<td>Raster of air temperature in the dry season</td>
+<td>“senegal_inputs/projected_habsuit_waterTemp_dry_2019_sen.tif”</td>
+</tr>
+<tr class="odd">
+<td>Wet Season Temperature Raster</td>
+<td>Raster of air temperature in the dry season</td>
+<td>“senegal_inputs/projected_habsuit_waterTemp_wet_2019_sen.tif”</td>
+</tr>
+<tr class="even">
+<td>Snail Water Temp Dry Risk Weight</td>
+<td></td>
+<td>“1”</td>
+</tr>
+<tr class="odd">
+<td>Snail Water Temp Wet Risk Weight</td>
+<td></td>
+<td>“1”</td>
+</tr>
+<tr class="even">
+<td>Snail Suitability Function Type</td>
+<td>Which snail species to model</td>
+<td>“Default: Bulinus truncatus”</td>
+</tr>
+<tr class="odd">
+<td>Parasite Water Temp Dry Risk Weight</td>
+<td></td>
+<td>“1”</td>
+</tr>
+<tr class="even">
+<td>Parasite Water Temp Wet Risk Weight</td>
+<td></td>
+<td>“1”</td>
+</tr>
+<tr class="odd">
+<td>Parasite Suitability Function Type</td>
+<td>Which snail species to model</td>
+<td>“Default: S. haematobium”</td>
+</tr>
+<tr class="even">
+<td>Calculate NDVI</td>
+<td>Include NDVI in the model</td>
+<td>“Enable”</td>
+</tr>
+<tr class="odd">
+<td>Suitability Function Type</td>
+<td>default or user specified relationship with risk and NDVI</td>
+<td>“Default used in paper”</td>
+</tr>
+<tr class="even">
+<td>NDVI Dry Raster</td>
+<td>Raster of NDVI (0,1) during the dry season</td>
+<td>“senegal_inputs/projected_habsuit_NDVI_dry_2019_sen.tif”</td>
+</tr>
+<tr class="odd">
+<td>NDVI Dry Risk Weight</td>
+<td></td>
+<td>“1”</td>
+</tr>
+<tr class="even">
+<td>NDVI Wet Raster</td>
+<td>Raster of NDVI (0,1) during the wet season</td>
+<td>“senegal_inputs/projected_habsuit_NDVI_wet_2019_sen.tif”</td>
+</tr>
+<tr class="odd">
+<td>NDVI Wet Risk Weight</td>
+<td></td>
+<td>“1”</td>
+</tr>
+<tr class="even">
+<td>Calculate Water Velocity</td>
+<td>Function to estimate water velocity suitability</td>
+<td>“Disable”</td>
+</tr>
+<tr class="odd">
+<td>Additional User Defined Suitabilty Input</td>
+<td>Allows user to add additional custom functions</td>
+<td>“Disable”</td>
+</tr>
+</tbody>
+</table>
 <p>https://github.com/Bushytop/schisto_eeid/tree/main/data/natcap_invest https://colab.research.google.com/drive/1Gj8zyo4nE2ij10aNuoXjx3yiYCTGy5tR?usp=sharing#scrollTo=dylSqiUUwmA8 [7:52 AM]in particular, the parameters to use for consistency are: max decay distance: 5000 use default population suitability (enable) rural population max: 1000 urbanization population max: 25000 calculate water depth (enable) water depth risk weight: 1 calculate water temperature (enable) all risk weights set to 1 default snail and parasite suitability function types calculate ndvi (enable) default ndvi suitability function ndvi risk weight: 1 for both dry and wet water velocity disabled and no other functions defined</p>
 
 

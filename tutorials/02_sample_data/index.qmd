@@ -5,7 +5,7 @@ date: 02-04-2025 #important if sorting by date in tutorials
 categories: [InVEST, Quickstart] #rough ideas if want tags
 image: "Barrage_de_Diama_Massowka, CC BY-SA 4.0  Wikimedia Commons.jpg" #must be in this folder
 fit-alt: "Barrage_de_Diama_Massowka, CC BY-SA 4.0  Wikimedia Commons.jpg"
-draft: true #true until ready to post
+draft: false #true until ready to post
 ---
 
 ## Downloading sample data
