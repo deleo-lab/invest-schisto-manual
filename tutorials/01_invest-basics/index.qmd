@@ -26,7 +26,7 @@ We've created a **custom version InVEST** to support the custom functionality ne
     c.  Alternatively you can just install Download and install the `Microsoft Visual C++ Redistributable` from [this link](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170#latest-supported-redistributable-version). Both the **x86** and **x64** versions.
     d.  Open the `.exe` files and follow to installation prompts.
 3.  Download and install the InVEST workbench
-    a.  [Download custom version of InVEST](https://drive.google.com/drive/folders/1FmZieYedKNUoI82_l0Ool1hXWqyj--x4?usp=sharing) file with `win32` in the name.\  
+    a.  [Download custom version of InVEST](https://drive.google.com/file/d/1MIgofYmqJ6veqsUbBMfBIGdwJeOdgCFK/view?usp=sharing) file with `win32` in the name.\  
         ![Screenshot showing windows download link](tutorial screenshots/dev_invest_download_windows.png){width="300"}
     b.  Open your downloads folder and open the `.exe` file
     c.  A box Windows protexted your PC will open. Click `More info` and `Run anyways`\
@@ -37,7 +37,7 @@ We've created a **custom version InVEST** to support the custom functionality ne
 ### Mac
 
 1.  Download and install the InVEST workbench
-    a.  [Download custom version of InVEST](https://drive.google.com/drive/folders/1FmZieYedKNUoI82_l0Ool1hXWqyj--x4?usp=sharing) file with `darwin` in the name.\
+    a.  [Download custom version of InVEST](https://drive.google.com/file/d/1DPNuL3v9p4z8mRCdenX9kjyYWq6ONKCt/view?usp=sharing) file with `darwin` in the name.\
         ![Screenshot showing windows download link](tutorial screenshots/dev_invest_download_mac.png){width="600"}
     b.  Open your downloads folder and open the `.exe` file
     c.  Once the file has downloaded, open it and click Agree when the license prompt appears.\
