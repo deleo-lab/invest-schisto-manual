@@ -6,10 +6,10 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2026-02-04">
-<meta name="description" content="Use our sample data to run your first model">
+<meta name="dcterms.date" content="2026-02-20">
+<meta name="description" content="Downloading input layers for your area of interest">
 
-<title>InVEST Schistosomiasis - Running sample models</title>
+<title>InVEST Schistosomiasis - Accessing input layers with Google Earth Engine</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -21,6 +21,40 @@ ul.task-list li input[type="checkbox"] {
   width: 0.8em;
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
 </style>
 
@@ -109,15 +143,16 @@ ul.task-list li input[type="checkbox"] {
 <header id="title-block-header" class="quarto-title-block default page-columns page-full">
   <div class="quarto-title-banner page-columns page-full">
     <div class="quarto-title column-body">
-      <h1 class="title">Running sample models</h1>
+      <h1 class="title">Accessing input layers with Google Earth Engine</h1>
                   <div>
         <div class="description">
-          Use our sample data to run your first model
+          Downloading input layers for your area of interest
         </div>
       </div>
                           <div class="quarto-categories">
                 <div class="quarto-category">InVEST</div>
-                <div class="quarto-category">Quickstart</div>
+                <div class="quarto-category">GEE</div>
+                <div class="quarto-category">Parameters</div>
               </div>
                   </div>
   </div>
@@ -129,7 +164,7 @@ ul.task-list li input[type="checkbox"] {
       <div>
       <div class="quarto-title-meta-heading">Published</div>
       <div class="quarto-title-meta-contents">
-        <p class="date">February 4, 2026</p>
+        <p class="date">February 20, 2026</p>
       </div>
     </div>
     
@@ -145,12 +180,16 @@ ul.task-list li input[type="checkbox"] {
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#downloading-sample-data" id="toc-downloading-sample-data" class="nav-link active" data-scroll-target="#downloading-sample-data">Downloading sample data</a>
+  <li><a href="#background" id="toc-background" class="nav-link active" data-scroll-target="#background">Background</a></li>
+  <li><a href="#area-of-interest-aoi" id="toc-area-of-interest-aoi" class="nav-link" data-scroll-target="#area-of-interest-aoi">Area of Interest (AOI)</a>
   <ul class="collapse">
-  <li><a href="#move-data-into-invest" id="toc-move-data-into-invest" class="nav-link" data-scroll-target="#move-data-into-invest">Move data into InVEST</a></li>
+  <li><a href="#build-your-own-aoi" id="toc-build-your-own-aoi" class="nav-link" data-scroll-target="#build-your-own-aoi">Build your own AOI</a></li>
+  <li><a href="#use-administrative-boarders-global-administrative-areas" id="toc-use-administrative-boarders-global-administrative-areas" class="nav-link" data-scroll-target="#use-administrative-boarders-global-administrative-areas">Use administrative boarders (Global Administrative Areas)</a></li>
   </ul></li>
-  <li><a href="#running-the-model-with-sample-data" id="toc-running-the-model-with-sample-data" class="nav-link" data-scroll-target="#running-the-model-with-sample-data">Running the model with sample data</a></li>
-  <li><a href="#interpreting-results-with-sample-data" id="toc-interpreting-results-with-sample-data" class="nav-link" data-scroll-target="#interpreting-results-with-sample-data">Interpreting results with sample data</a></li>
+  <li><a href="#date-range" id="toc-date-range" class="nav-link" data-scroll-target="#date-range">Date range</a></li>
+  <li><a href="#water-mask" id="toc-water-mask" class="nav-link" data-scroll-target="#water-mask">Water Mask</a></li>
+  <li><a href="#seasonal-ndvi" id="toc-seasonal-ndvi" class="nav-link" data-scroll-target="#seasonal-ndvi">Seasonal NDVI</a></li>
+  <li><a href="#seasonal-water-temperature" id="toc-seasonal-water-temperature" class="nav-link" data-scroll-target="#seasonal-water-temperature">Seasonal Water Temperature</a></li>
   </ul>
 </nav>
     </div>
@@ -160,39 +199,38 @@ ul.task-list li input[type="checkbox"] {
 
 
 
-<section id="downloading-sample-data" class="level2">
-<h2 class="anchored" data-anchor-id="downloading-sample-data">Downloading sample data</h2>
-<p>Now that InVEST Workbench and the Schistosomiasis Plug-in are installed, you will need sample data to run the model. We have provided sample data for Cote d’Ivoire (CIV), Senegal, and Tanzania.</p>
-<p>Zipped files containing the sample data can be downloaded from a Google Drive folder linked <a href="https://drive.google.com/drive/folders/1lVnXvhtyNA9mAIwBPTD0HgFQELPkHs0V">here</a>. <span style="color: red;">currently need to ask for access!</span>. For each location, there are two files:</p>
-<ol type="1">
-<li><code>invest_schistosomiasis\_\[location\]\_datastack.tar.gz</code> contain InVEST datastack archives (a zipped tarball containing all model inputs and parameters). The data in these files will populate the inputs for the Schistosomiasis Tool.<br>
-</li>
-<li><code>\[location\]\_inputs.zip</code> contain all the inputs for each location, including the different AOI (Area of Interest - the geographic boundary defining the study region)</li>
-</ol>
-<section id="move-data-into-invest" class="level3">
-<h3 class="anchored" data-anchor-id="move-data-into-invest">Move data into InVEST</h3>
-<ol type="1">
-<li><p>Download the two files for the location you are interested in running from <a href="https://drive.google.com/drive/folders/1lVnXvhtyNA9mAIwBPTD0HgFQELPkHs0V">Google Drive</a> <span style="color: red;">currently need to ask for access!</span></p></li>
-<li><p>Once files are downloaded, extract them (unzip them). Store them in a folder relevant to your project (e.g.&nbsp;<code>Invest_sample_data/Schistosomiasis/Senegal</code>)<br>
-<img src="unzip_windows.png" class="img-fluid" width="600" alt="Screenshot of unzipping on windows"></p></li>
-<li><p>Open <code>InVEST</code> and then click <code>Schistosomiasis</code> to open the plugin.<br>
-<img src="open_plugin.png" class="img-fluid" alt="Screenshot of opening schistosomiasis plugin"></p></li>
-<li><p>In your file browser navigate to where you extracted the <code>invest_schistosomiasis_senegal_datastack</code> folder. In that folder there is a file <code>parameters.invest.json</code>.</p></li>
-<li><p>Drag parameters.invest.json into the InVEST model window to auto-fill all inputs. Alternatively you can open the file using <code>Load parameters from file</code> and navigating to <code>parameters.invest.json</code> <span style="color: red;">stopped here because json needs updates</span></p></li>
-</ol>
+<section id="background" class="level2">
+<h2 class="anchored" data-anchor-id="background">Background</h2>
+<p>The data layers input into the InVEST Schistosomiasis tool are core to predicting current places within the snail environmental envelope and predicting where populations are likely to be at risk. Users will likely want to use some of their own geospatial data layers that are (1) accurate to their area of interest, (2) predict future scenarios like floods and changes in surface water due to water infastructure development, and (3) …. However, sourcing remotely sensed data products is a skill in itself. For that reason we have developed Google Earth Engine (GEE) code to help users download the data necessary to get started using the Schistosomiasis tool in their own region.</p>
+<p>Before you begin create a GEE account. Instructions to do so can be found here.</p>
+</section>
+<section id="area-of-interest-aoi" class="level2">
+<h2 class="anchored" data-anchor-id="area-of-interest-aoi">Area of Interest (AOI)</h2>
+<p>The AOI identifies the geographical region where you want to make predictions. The AOI can be created manually by building a polygon in the GEE interface directly, from an uploaded file, or administrative boarders can be used. For this tutorial, we will use the administrative boarders of Cote d’Ivoire. <strong>No matter where your AOI is call the variable <code>AOI</code>.</strong></p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>var AOI <span class="ot">=</span> <span class="fu">ee.FeatureCollection</span>(<span class="st">"projects/sat-io/open-datasets/WORLD-BANK/WBGAD/WB_GAD_ADM0"</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>              <span class="fu">.filter</span>(<span class="fu">ee.Filter.eq</span>(<span class="st">'ISO_A3'</span>, <span class="st">'CIV'</span>)) <span class="sc">/</span><span class="er">/</span> change<span class="st">'CIV'</span> to country code of interest</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>              <span class="fu">.map</span>(<span class="cf">function</span>(feat) {return <span class="fu">feat.set</span>(<span class="st">'value'</span>, <span class="dv">1</span>)});</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(AOI);</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="build-your-own-aoi" class="level3">
+<h3 class="anchored" data-anchor-id="build-your-own-aoi">Build your own AOI</h3>
+</section>
+<section id="use-administrative-boarders-global-administrative-areas" class="level3">
+<h3 class="anchored" data-anchor-id="use-administrative-boarders-global-administrative-areas">Use administrative boarders (Global Administrative Areas)</h3>
 </section>
 </section>
-<section id="running-the-model-with-sample-data" class="level2">
-<h2 class="anchored" data-anchor-id="running-the-model-with-sample-data">Running the model with sample data</h2>
-<ul>
-<li>Open the Schistosomiasis model in Workbench.</li>
-<li>Drag parameters.invest.json into the UI.</li>
-<li>Choose an output folder.</li>
-<li>Click Run.</li>
-</ul>
+<section id="date-range" class="level2">
+<h2 class="anchored" data-anchor-id="date-range">Date range</h2>
 </section>
-<section id="interpreting-results-with-sample-data" class="level2">
-<h2 class="anchored" data-anchor-id="interpreting-results-with-sample-data">Interpreting results with sample data</h2>
+<section id="water-mask" class="level2">
+<h2 class="anchored" data-anchor-id="water-mask">Water Mask</h2>
+</section>
+<section id="seasonal-ndvi" class="level2">
+<h2 class="anchored" data-anchor-id="seasonal-ndvi">Seasonal NDVI</h2>
+</section>
+<section id="seasonal-water-temperature" class="level2">
+<h2 class="anchored" data-anchor-id="seasonal-water-temperature">Seasonal Water Temperature</h2>
 
 
 </section>

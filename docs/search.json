@@ -39,7 +39,7 @@
     "href": "tutorials.html",
     "title": "Tutorials",
     "section": "",
-    "text": "Downloading InVEST and the Schistosomiasis Plugin\n\n\n\nInVEST\n\n\nQuickstart\n\n\n\nQuick-start Instructions\n\n\n\n\n\n\nNov 24, 2025\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nAccessing input layers with Google Earth Engine\n\n\n\nInVEST\n\n\nGEE\n\n\nParameters\n\n\n\nDownloading input layers for your area of interest\n\n\n\n\n\n\nFeb 20, 2025\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nUnderstanding the model inputs\n\n\n\nInVEST\n\n\nQuickstart\n\n\nParameters\n\n\n\nDetails on the model parameters and how the model works\n\n\n\n\n\n\nFeb 5, 2025\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nRunning sample models\n\n\n\nInVEST\n\n\nQuickstart\n\n\n\nUse our sample data to run your first model\n\n\n\n\n\n\nFeb 4, 2025\n\n\n\n\n\n\n\n\nNo matching items"
+    "text": "Understanding the model inputs\n\n\n\nInVEST\n\n\nQuickstart\n\n\nParameters\n\n\n\nDetails on the model parameters and how the model works\n\n\n\n\n\n\nFeb 5, 2026\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nRunning sample models\n\n\n\nInVEST\n\n\nQuickstart\n\n\n\nUse our sample data to run your first model\n\n\n\n\n\n\nFeb 4, 2026\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nDownloading InVEST and the Schistosomiasis Plugin\n\n\n\nInVEST\n\n\nQuickstart\n\n\n\nQuick-start Instructions\n\n\n\n\n\n\nNov 24, 2025\n\n\n\n\n\n\n\n\nNo matching items"
   },
   {
     "objectID": "tutorials/01_invest-basics/index.html",
@@ -102,7 +102,7 @@
     "href": "index.html#to-do",
     "title": "InVEST Schistosomiasis",
     "section": "To Do",
-    "text": "To Do\n\n\nGetting started windows\nGetting started mac – updates needed with dev version\n\nQuickstart using Senegal example\n\nDetailed explainations of the functions and input values based on the SenegalHabSuit collab Can directly add python script to this website\n\nUsing your own data example with GEE\n\nFuture GEE app so users input country, dates, seasons and obtain layers needed\n\nFuture Comparing water layers (eg flood, no flood)\n\nFuture Report generation of schisto risk"
+    "text": "To Do\n\n\nGetting started windows\nGetting started mac – updates needed with dev version\n\nQuickstart using Senegal example\n\nDetailed explainations of the functions and input values based on the SenegalHabSuit collab Needs validation & editing\n\nUsing your own data example with GEE underdevelopment\n\nFuture GEE app so users input country, dates, seasons and obtain layers needed\n\nFuture Comparing water layers (eg flood, no flood)\n\nFuture Report generation of schisto risk"
   },
   {
     "objectID": "tutorials/01_invest-basics/index.html#installing-the-schistosomiasis-plug-in",
@@ -173,54 +173,5 @@
     "title": "Understanding the model inputs",
     "section": "Just the tutorial inputs please!",
     "text": "Just the tutorial inputs please!\nEverything called a “risk weight” is how important (e.g., relative weight) that parameter is in the model.\n\n\n\n\n\n\n\n\nName\nDescription\nInput\n\n\n\n\nWorkspace\nfile where results are saved to\n“senegal_example_inputs”\n\n\nFile Suffix\nif you want to save many interations of the model in the same folder add a suffix e.g. the date)\n“20260205”\n\n\nArea of Interest\nshape file of the area you want to model\n“senegal_inputs/projected_sen_aoi.gpkg”\n\n\nMax decay distance\nHow far from water (meters) are populations impacted\n“5000”\n\n\nWater Presence\nBinary raster of water features\n“senegal_inputs/projected_basin_water_mask_nodata_sen.tif”\n\n\nPopulation Raster\nA raster representing the number of inhabitants per pixel\nsenegal_inputs/population_count_projected.tif\n\n\nDefault Population Suitability\nPopulation densities suitable to transmission\n“rural population max = 1000” “urbanization population max = 25000”\n\n\nCalculate Water Depth\nFunction to estimate water depth based on dist. to shore\n“Enable” “Risk weight = 1”\n\n\nCalculate Water Temperature\nFunction to estimate water temperature suitability\n“Enable”\n\n\nDry Season Temperature Raster\nRaster of air temperature in the dry season\n“senegal_inputs/projected_habsuit_waterTemp_dry_2019_sen.tif”\n\n\nWet Season Temperature Raster\nRaster of air temperature in the dry season\n“senegal_inputs/projected_habsuit_waterTemp_wet_2019_sen.tif”\n\n\nSnail Water Temp Dry Risk Weight\n\n“1”\n\n\nSnail Water Temp Wet Risk Weight\n\n“1”\n\n\nSnail Suitability Function Type\nWhich snail species to model\n“Default: Bulinus truncatus”\n\n\nParasite Water Temp Dry Risk Weight\n\n“1”\n\n\nParasite Water Temp Wet Risk Weight\n\n“1”\n\n\nParasite Suitability Function Type\nWhich snail species to model\n“Default: S. haematobium”\n\n\nCalculate NDVI\nInclude NDVI in the model\n“Enable”\n\n\nSuitability Function Type\ndefault or user specified relationship with risk and NDVI\n“Default used in paper”\n\n\nNDVI Dry Raster\nRaster of NDVI (0,1) during the dry season\n“senegal_inputs/projected_habsuit_NDVI_dry_2019_sen.tif”\n\n\nNDVI Dry Risk Weight\n\n“1”\n\n\nNDVI Wet Raster\nRaster of NDVI (0,1) during the wet season\n“senegal_inputs/projected_habsuit_NDVI_wet_2019_sen.tif”\n\n\nNDVI Wet Risk Weight\n\n“1”\n\n\nCalculate Water Velocity\nFunction to estimate water velocity suitability\n“Disable”\n\n\nAdditional User Defined Suitabilty Input\nAllows user to add additional custom functions\n“Disable”\n\n\n\nhttps://github.com/Bushytop/schisto_eeid/tree/main/data/natcap_invest https://colab.research.google.com/drive/1Gj8zyo4nE2ij10aNuoXjx3yiYCTGy5tR?usp=sharing#scrollTo=dylSqiUUwmA8 [7:52 AM]in particular, the parameters to use for consistency are: max decay distance: 5000 use default population suitability (enable) rural population max: 1000 urbanization population max: 25000 calculate water depth (enable) water depth risk weight: 1 calculate water temperature (enable) all risk weights set to 1 default snail and parasite suitability function types calculate ndvi (enable) default ndvi suitability function ndvi risk weight: 1 for both dry and wet water velocity disabled and no other functions defined"
-  },
-  {
-    "objectID": "tutorials/04_download_GEE_data/index.html",
-    "href": "tutorials/04_download_GEE_data/index.html",
-    "title": "Accessing input layers with Google Earth Engine",
-    "section": "",
-    "text": "The data layers input into the InVEST Schistosomiasis tool are core to predicting current places within the snail environmental envelope and predicting where populations are likely to be at risk. Users will likely want to use some of their own geospatial data layers that are (1) accurate to their area of interest, (2) predict future scenarios like floods and changes in surface water due to water infastructure development, and (3) …. However, sourcing remotely sensed data products is a skill in itself. For that reason we have developed Google Earth Engine (GEE) code to help users download the data necessary to get started using the Schistosomiasis tool in their own region.\nBefore you begin create a GEE account. Instructions to do so can be found here."
-  },
-  {
-    "objectID": "tutorials/04_download_GEE_data/index.html#background",
-    "href": "tutorials/04_download_GEE_data/index.html#background",
-    "title": "Accessing input layers with Google Earth Engine",
-    "section": "",
-    "text": "The data layers input into the InVEST Schistosomiasis tool are core to predicting current places within the snail environmental envelope and predicting where populations are likely to be at risk. Users will likely want to use some of their own geospatial data layers that are (1) accurate to their area of interest, (2) predict future scenarios like floods and changes in surface water due to water infastructure development, and (3) …. However, sourcing remotely sensed data products is a skill in itself. For that reason we have developed Google Earth Engine (GEE) code to help users download the data necessary to get started using the Schistosomiasis tool in their own region.\nBefore you begin create a GEE account. Instructions to do so can be found here."
-  },
-  {
-    "objectID": "tutorials/04_download_GEE_data/index.html#area-of-interest-aoi",
-    "href": "tutorials/04_download_GEE_data/index.html#area-of-interest-aoi",
-    "title": "Accessing input layers with Google Earth Engine",
-    "section": "Area of Interest (AOI)",
-    "text": "Area of Interest (AOI)\nThe AOI identifies the geographical region where you want to make predictions. The AOI can be created manually by building a polygon in the GEE interface directly, from an uploaded file, or administrative boarders can be used. For this tutorial, we will use the administrative boarders of Cote d’Ivoire. No matter where your AOI is call the variable AOI.\n\nvar AOI = ee.FeatureCollection(\"projects/sat-io/open-datasets/WORLD-BANK/WBGAD/WB_GAD_ADM0\")\n              .filter(ee.Filter.eq('ISO_A3', 'CIV')) // change'CIV' to country code of interest\n              .map(function(feat) {return feat.set('value', 1)});\nprint(AOI);\n\n\nBuild your own AOI\n\n\nUse administrative boarders (Global Administrative Areas)"
-  },
-  {
-    "objectID": "tutorials/04_download_GEE_data/index.html#date-range",
-    "href": "tutorials/04_download_GEE_data/index.html#date-range",
-    "title": "Accessing input layers with Google Earth Engine",
-    "section": "Date range",
-    "text": "Date range"
-  },
-  {
-    "objectID": "tutorials/04_download_GEE_data/index.html#water-mask",
-    "href": "tutorials/04_download_GEE_data/index.html#water-mask",
-    "title": "Accessing input layers with Google Earth Engine",
-    "section": "Water Mask",
-    "text": "Water Mask"
-  },
-  {
-    "objectID": "tutorials/04_download_GEE_data/index.html#seasonal-ndvi",
-    "href": "tutorials/04_download_GEE_data/index.html#seasonal-ndvi",
-    "title": "Accessing input layers with Google Earth Engine",
-    "section": "Seasonal NDVI",
-    "text": "Seasonal NDVI"
-  },
-  {
-    "objectID": "tutorials/04_download_GEE_data/index.html#seasonal-water-temperature",
-    "href": "tutorials/04_download_GEE_data/index.html#seasonal-water-temperature",
-    "title": "Accessing input layers with Google Earth Engine",
-    "section": "Seasonal Water Temperature",
-    "text": "Seasonal Water Temperature"
   }
 ]

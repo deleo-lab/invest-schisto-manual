@@ -1,0 +1,72 @@
+---
+title: "Accessing input layers with Google Earth Engine"
+description: "Downloading input layers for your area of interest"
+date: 02-20-2026 #important if sorting by date in tutorials
+categories: [InVEST, GEE, Parameters] #rough ideas if want tags
+image: plugin_blank.png #must be in this folder
+draft: true #true until ready to post
+---
+
+```{r}
+#| include: false
+library(tidyverse)
+library(terra)
+
+## path to where data files are (change to where is it on your computer)
+fp <- "H:/My Drive/De Leo Lab/projects/InVEST_schisto/zanzibar/GEEexports/"
+desired_crs <- "EPSG:102022"
+
+## load zanzibar data for plotting what is in each layer
+# aoi <- vect(paste0(fp, "aoi_vector_TZA.shp"))
+watermask <- rast(paste0(fp, "basin_water_mask_TZA.tif"))
+# ndvi_dry <- rast(paste0(fp, "habsuit_NDVI_dry_2020_TZA.tif"))
+# ndvi_wet <- rast(paste0(fp, "habsuit_NDVI_wet_2020_TZA.tif"))
+# popu <- rast(paste0(fp, "habsuit_pop_2020_TZA.tif")) ## currently has projection issue
+# watertemp_dry <- rast(paste0(fp, "habsuit_waterTemp_dry_2020_TZA.tif"))
+# watertemp_wet <- rast(paste0(fp, "habsuit_waterTemp_wet_2020_TZA.tif"))
+
+## fix extend and projection issues with GEE code
+# popu <- project(popu, watermask)
+# aoi_new <- as.polygons(watermask)
+
+## save those
+# writeRaster(popu, paste0(fp, "habsuit_pop_2020_TZA_projected.tif"), overwrite=T)
+# writeVector(aoi_new, paste0(fp, "aoi_vector_TZA_projected.geojson"), overwrite=T)
+
+## stack layers to make sure they line up
+# mylrys <- c(ndvi_dry, ndvi_wet, watertemp_dry, watertemp_wet)
+# plot(mylrys)
+# crs(aoi_new) == crs(watermask)
+
+fp <- "H:/My Drive/De Leo Lab/projects/InVEST_schisto/CIV/"
+water  <- rast(paste0(fp, "water_maskCIV2020.tif"))
+plot(water)
+```
+
+## Background  
+
+The data layers input into the InVEST Schistosomiasis tool are core to predicting current places within the snail environmental envelope and predicting where populations are likely to be at risk. Users will likely want to use some of their own geospatial data layers that are (1) accurate to their area of interest, (2) predict future scenarios like floods and changes in surface water due to water infastructure development, and (3) .... However, sourcing remotely sensed data products is a skill in itself. For that reason we have developed Google Earth Engine (GEE) code to help users download the data necessary to get started using the Schistosomiasis tool in their own region. 
+
+Before you begin create a GEE account. Instructions to do so can be found here. 
+
+## Area of Interest (AOI)  
+
+The AOI identifies the geographical region where you want to make predictions. The AOI can be created manually by building a polygon in the GEE interface directly, from an uploaded file, or administrative boarders can be used. For this tutorial, we will use the administrative boarders of Cote d'Ivoire.  **No matter where your AOI is call the variable `AOI`.**
+
+```{r, eval=FALSE}
+var AOI = ee.FeatureCollection("projects/sat-io/open-datasets/WORLD-BANK/WBGAD/WB_GAD_ADM0")
+              .filter(ee.Filter.eq('ISO_A3', 'CIV')) // change'CIV' to country code of interest
+              .map(function(feat) {return feat.set('value', 1)});
+print(AOI);
+```
+
+### Build your own AOI  
+### Use administrative boarders (Global Administrative Areas)
+
+## Date range 
+
+## Water Mask
+
+## Seasonal NDVI  
+
+## Seasonal Water Temperature

@@ -20,9 +20,9 @@ The goal of the Schistosomiasis plugin for the InVEST software is provide a tool
 :::{.align-left}
 - [x] Getting started windows
 - [ ] Getting started mac -- updates needed with dev version  
-- [ ] Quickstart using Senegal example  
-- [ ] Detailed explainations of the functions and input values based on the [SenegalHabSuit collab](https://colab.research.google.com/drive/1Gj8zyo4nE2ij10aNuoXjx3yiYCTGy5tR?usp=sharing) *Can directly add python script to this website*  
-- [ ] Using your own data example with GEE  
+- [x] Quickstart using Senegal example  
+- [x] Detailed explainations of the functions and input values based on the [SenegalHabSuit collab](https://colab.research.google.com/drive/1Gj8zyo4nE2ij10aNuoXjx3yiYCTGy5tR?usp=sharing) *Needs validation & editing*  
+- [ ] Using your own data example with GEE *underdevelopment*  
 - [ ] Future GEE app so users input country, dates, seasons and obtain layers needed  
 - [ ] Future Comparing water layers (eg flood, no flood)  
 - [ ] Future Report generation of schisto risk
