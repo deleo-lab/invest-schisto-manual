@@ -2,6 +2,8 @@
   {
     "listing": "/tutorials.html",
     "items": [
+      "/tutorials/06_scenario_zanzibar/index.html",
+      "/tutorials/05_dam_scenario_nawa/index.html",
       "/tutorials/03_model_parameters/index.html",
       "/tutorials/02_sample_data/index.html",
       "/tutorials/01_invest-basics/index.html"

@@ -66,7 +66,7 @@ Once InVEST Workbench is downloaded, you will need to open it and add the Schist
 
 1.  Open InVEST Workbench. In InVEST Workbench click the `three line menu icon` $\to$ `Manage Plugins` $\to$ `Add Plugin`.\
 ![Screenshot showing where to manage plug-ins](tutorial screenshots/Screenshot10.png){width="600"}
-2.  Copy and paste the following for git URL: **`https://github.com/natcap/invest-schistosomiasis.git`**. Check the box to acknowledge the risks associated with installing the plugin. Leave everything else blank. Click `Add`. This step will take several minutes. It is setting up an isolated python environment, downloading, and installing the schistosomiasis model. You only need to do this step once.\
+2.  Copy and paste the following for git URL: **`https://github.com/natcap/invest-schistosomiasis.git`**. Check the box to acknowledge the risks associated with installing the plugin. Leave everything else blank. Click `Add`. This step will take several minutes. It is setting up an isolated python environment, downloading, and installing the schistosomiasis model. You only need to do this step once. If you recieve and error message about long paths on Windows, open setting and search "long paths" then enable long paths.\
 ![Screenshot showing how to add plug-in](tutorial screenshots/Screenshot11.png){width="600"}
 3.  The `Schistosomiasis` plugin is now available in the workbench.\
 ![Screenshots InVEST workspace](tutorial screenshots/plugin_successful.png){width="600"}

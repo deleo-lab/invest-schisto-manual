@@ -10,8 +10,6 @@ website:
         text: Home
       - href: tutorials/01_invest-basics/
         text: Getting started
-      - href: about.qmd
-        text: About
       - href: tutorials.qmd
         text: Tutorials
 

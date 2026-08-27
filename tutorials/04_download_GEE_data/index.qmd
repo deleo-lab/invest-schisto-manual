@@ -13,12 +13,12 @@ library(tidyverse)
 library(terra)
 
 ## path to where data files are (change to where is it on your computer)
-fp <- "H:/My Drive/De Leo Lab/projects/InVEST_schisto/zanzibar/GEEexports/"
+fp <- "G:/My Drive/GEEexports/"
 desired_crs <- "EPSG:102022"
 
 ## load zanzibar data for plotting what is in each layer
 # aoi <- vect(paste0(fp, "aoi_vector_TZA.shp"))
-watermask <- rast(paste0(fp, "basin_water_mask_TZA.tif"))
+watermask <- rast(paste0(fp, "water_mask_TZA_2020_v5.tif"))
 # ndvi_dry <- rast(paste0(fp, "habsuit_NDVI_dry_2020_TZA.tif"))
 # ndvi_wet <- rast(paste0(fp, "habsuit_NDVI_wet_2020_TZA.tif"))
 # popu <- rast(paste0(fp, "habsuit_pop_2020_TZA.tif")) ## currently has projection issue
@@ -38,9 +38,9 @@ watermask <- rast(paste0(fp, "basin_water_mask_TZA.tif"))
 # plot(mylrys)
 # crs(aoi_new) == crs(watermask)
 
-fp <- "H:/My Drive/De Leo Lab/projects/InVEST_schisto/CIV/"
-water  <- rast(paste0(fp, "water_maskCIV2020.tif"))
-plot(water)
+fp <- "G:/My Drive/De Leo Lab/projects/InVEST_schisto/CIV/"
+# water  <- rast(paste0(fp, "water_maskCIV2020.tif"))
+# plot(water)
 ```
 
 ## Background  

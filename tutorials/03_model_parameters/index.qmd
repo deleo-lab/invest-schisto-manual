@@ -17,7 +17,7 @@ library(tidyterra)
 library(geodata)
 
 ## filepath to get to the senegal_inputs folder (if someone else knits this file they will need to comment this out and make their own)
-fp <- "H:/My Drive/De Leo Lab/projects/InVEST_schisto/InVEST_sample_data/Schistosomiasis/senegal_inputs/"
+fp <- "G:/My Drive/De Leo Lab/projects/InVEST_schisto/InVEST_sample_data/Schistosomiasis/senegal_inputs/"
 
 ## ggplot setup
 theme_set(theme_bw())
@@ -104,7 +104,7 @@ pbase+
 
 ### Max decay distance (number) (m)
 
-The maximum threat distance from water risk in meters The risk decays 1 $\to$ 0 from 1km from water to the input max distance to water value linearly. *How far from water do you expect a population to be impacted?* 
+The maximum threat distance from water risk in meters The risk decays 1 $\to$ 0 from 1km from water to the input max distance to water value linearly. *How far from water do you expect a population to be impacted?* {\textcolor="red}{This input is then used for all the water-based functions below **but these also have max dist input???}
 
 The function for proximity to water was based on a combination of literature and expert opinion. Households near schistosome-containing water bodies tend to have higher schistosomiasis prevalence than those far away ([Huang and Manderson 1992](https://doi.org/10.1016/0001-706x(92)90037-x)). This relationship has been studied in Kenya, Ghana and Brazil and summarized into four risk categories based on a residence’s proximity to freshwater: very high (<100 m), high (101-500 m), low (501-1,000 m) and very low (1,001-2,000 m) ([Ajakaye et al. 2017](https://doi.org/10.1371/journal.pntd.0005733)). Based on field experience, people living in the arid Senegal River Basin travel farther to water (personal communication with Giulio De Leo and Andy Chamberlin), so the risk categories at this site were scaled up to: total (<1 km), linearly declining (1-15 km), and negligible (>15 km). This categorization is supported by a study in Kenya which found no correlation between proximity and prevalence for schools within 1 km of water ([Nagi et al. 2014](https://doi.org/10.1371/journal.pntd.0002991)).
 

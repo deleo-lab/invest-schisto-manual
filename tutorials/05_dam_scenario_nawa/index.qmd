@@ -1,0 +1,544 @@
+---
+title: "Before and After Dam Construction"
+author: "Kayla Kauffman"
+date: 06-25-2026 #important if sorting by date in tutorials
+categories: [InVEST, Scenario] #rough ideas if want tags
+image: Barrage_hydroélectrique_de_Soubré.jpg #must be in this folder
+execute: 
+    message: false
+    warning: false
+    echo: false
+draft: false #true until ready to post
+---
+
+```{r setup}
+#| include: false
+
+library(tidyverse)
+library(terra)
+library(sf)
+library(tidyterra)
+
+theme_set(theme_bw())
+theme_update(strip.background = element_rect(fill = "white"))
+nice_titles <- as_labeller(function(x) {str_to_sentence(str_replace_all(x, "_", " "))})
+```
+
+## Background  
+
+In the Bas Sassandra region of Cote d'Ivoire two hydroelectic dams were recently built:  
+
+* [Gribo-Popoli Hydroelectric Power Station](https://en.wikipedia.org/wiki/Gribo%E2%80%93Popoli_Hydroelectric_Power_Station) started construction in 2018 and finished in mid 2024  
+* [Soubre Hydroelectric Power Station](https://en.wikipedia.org/wiki/Soubr%C3%A9_Hydroelectric_Power_Station) which started construction in 2016 and finished in 2018.
+
+This leaves 4 interesting timepoints for comparing the schistosomiasis risk in the region:  
+
+* 2015 before any construction  
+* 2017 during Soubre Dam construction / before Gribo-Popoli   
+* 2019 Soubre construction complete/Gribo-Popoli under construction    
+* 2025 Gribo-Popoli complete  
+
+## Data used  
+
+The rasters used in this analysis were downloaded using Google Earth Engine. The code for this is included in the appendix. 
+
+```{r dams}
+dam_locs <- data.frame(
+  name = c("Gribo-Popoli", "Soubre"),
+  lat = c(5.6980560, 5.8025358),
+  lon = c(-6.5713890, -6.6558854)
+) 
+
+dam_locs <- vect(dam_locs, geom=c("lon", "lat"), crs="EPSG:4326")
+dam_locs <- terra::project(dam_locs, "EPSG:32630")
+
+dam_buffer <- buffer(hull(dam_locs, type="circle"), 
+                     width = 10000)
+
+r_names <- c("water_mask", "NDVI_dry", "NDVI_wet", "waterTemp_dry", "waterTemp_wet", "worldpop")
+r_years <- c("2015", "2017", "2019", "2021", "2023", "2025") 
+```
+
+
+```{r fullaoi}
+## full regional AOI
+fl <- list.files("G:/My Drive/GEEexports", full.names = T)
+fl <- fl[which(str_detect(fl, "Bas-Sassandra"))]
+
+region_aoi <- vect(fl[which(str_detect(fl, "shp"))])
+r_ndvi_dry <- rast(fl[which(str_detect(fl, "NDVI_dry"))])
+r_ndvi_wet <- rast(fl[which(str_detect(fl, "NDVI_wet"))])
+r_temp_dry <- rast(fl[which(str_detect(fl, "waterTemp_dry"))])
+r_temp_wet <- rast(fl[which(str_detect(fl, "waterTemp_wet"))])
+# r_water <- rast(fl[which(str_detect(fl, "water_mask"))])
+r_pop <- rast(fl[which(str_detect(fl, "worldpop"))])
+
+## temporary fix to water
+# r_water_new <- ifel(r_water == 0, NaN, 1)
+# sources(r_water)
+# writeRaster(r_water_new[[1]], "G:/My Drive/GEEexports/water_mask_binary_CIV_Bas-Sassandra_2015.tif", overwrite=T)
+# writeRaster(r_water_new[[2]], "G:/My Drive/GEEexports/water_mask_binary_CIV_Bas-Sassandra_2017.tif", overwrite=T)
+# writeRaster(r_water_new[[3]], "G:/My Drive/GEEexports/water_mask_binary_CIV_Bas-Sassandra_2019.tif", overwrite=T)
+# writeRaster(r_water_new[[4]], "G:/My Drive/GEEexports/water_mask_binary_CIV_Bas-Sassandra_2021.tif", overwrite=T)
+# writeRaster(r_water_new[[5]], "G:/My Drive/GEEexports/water_mask_binary_CIV_Bas-Sassandra_2023.tif", overwrite=T)
+# writeRaster(r_water_new[[6]], "G:/My Drive/GEEexports/water_mask_binary_CIV_Bas-Sassandra_2025.tif", overwrite=T)
+
+r_water <- rast(fl[which(str_detect(fl, "water_mask_binary"))])
+```
+
+```{r plotaoi}
+ggplot() +
+  tidyterra::geom_spatvector(data=region_aoi) +
+  tidyterra::geom_spatvector(data=dam_buffer) +
+  tidyterra::geom_spatvector(data=dam_locs) 
+```
+
+```{r damarea}
+#| include: false
+#| eval: false
+
+## update dam buffer
+dam_buffer_new <- as.polygons(ext(crop(r_water[[1]], dam_buffer)))
+crs(dam_buffer_new) <- crs(r_water)
+## crop and save the input layers so invest runs faster
+cropNsave <- function(r, aoi_buffer = dam_buffer_new, yrs = r_years, 
+                      folder = "G:/My Drive/De Leo Lab/projects/InVEST_schisto/CIV/Bas-Sassandra/cropped_input/cropped_"){
+  rr <- crop(r, aoi_buffer)
+  names(rr) <- paste(names(rr), yrs, sep="_")
+  writeRaster(rr, paste0(folder, names(rr), ".tif"), overwrite=T)
+}
+
+names(r_water)
+cropNsave(r=r_water)
+names(r_ndvi_dry) <- rep("NDVI_dry", 6)
+cropNsave(r=r_ndvi_dry)
+names(r_ndvi_wet) <- rep("NDVI_wet", 6)
+cropNsave(r_ndvi_wet)
+names(r_temp_dry) <- rep("waterTemp_dry", 6)
+cropNsave(r_temp_dry)
+names(r_temp_wet) <- rep("waterTemp_wet", 6)
+cropNsave(r_temp_wet)
+names(r_pop)
+cropNsave(r_pop, yrs=r_years[1:3])
+
+writeVector(dam_buffer_new, "G:/My Drive/De Leo Lab/projects/InVEST_schisto/CIV/Bas-Sassandra/cropped_input/cropped_aoi.shp",
+            overwrite=T)
+```
+
+```{r subaoi}
+## use the small area
+## full regional AOI
+fl <- list.files("G:/My Drive/De Leo Lab/projects/InVEST_schisto/CIV/Bas-Sassandra/cropped_input/", full.names = T)
+
+aoi <- vect(fl[which(str_detect(fl, "shp"))])
+r_ndvi_dry <- rast(fl[which(str_detect(fl, "NDVI_dry"))])
+r_ndvi_wet <- rast(fl[which(str_detect(fl, "NDVI_wet"))])
+r_temp_dry <- rast(fl[which(str_detect(fl, "waterTemp_dry"))])
+r_temp_wet <- rast(fl[which(str_detect(fl, "waterTemp_wet"))])
+r_water <- rast(fl[which(str_detect(fl, "water_"))])
+r_pop <- rast(fl[which(str_detect(fl, "cropped_population"))])
+```
+
+::: {.panel-tabset}
+
+### Water Mask
+```{r water}
+ggplot()+
+  geom_spatraster(data=r_water, show.legend = F) +
+  # geom_spatvector(data=aoi, fill="transparent") +
+  geom_spatvector(data=dam_locs, col="red") +
+  facet_wrap(~lyr, labeller = nice_titles)
+```
+
+### NDVI dry
+
+```{r ndvidry}
+ggplot()+
+  geom_spatraster(data=r_ndvi_dry) +
+  # geom_spatvector(data=aoi, fill="transparent") +
+  geom_spatvector(data=dam_locs, col="red") +
+  scale_fill_continuous(palette = "YlGn")+
+  facet_wrap(~lyr, labeller = nice_titles)
+```
+  
+### NDVI wet  
+```{r ndviwet}
+ggplot()+
+  geom_spatraster(data=r_ndvi_wet) +
+  # geom_spatvector(data=aoi, fill="transparent") +
+  geom_spatvector(data=dam_locs, col="red") +
+  scale_fill_continuous(palette = "YlGn")+
+  facet_wrap(~lyr, labeller = nice_titles)
+```
+  
+### Water Temp dry  
+```{r tempdry}
+ggplot()+
+  geom_spatraster(data=r_temp_dry) +
+  # geom_spatvector(data=aoi, fill="transparent") +
+  geom_spatvector(data=dam_locs, col="black") +
+  scale_fill_continuous(palette = "PuRd")+
+  facet_wrap(~lyr, labeller = nice_titles)
+```
+
+### Water Temp wet
+```{r tempwet}
+ggplot()+
+  geom_spatraster(data=r_temp_wet) +
+  # geom_spatvector(data=aoi, fill="transparent") +
+  geom_spatvector(data=dam_locs, col="black") +
+  scale_fill_continuous(palette = "PuRd")+
+  facet_wrap(~lyr, labeller = nice_titles)
+```
+  
+### Population  
+
+In the 6/30 model run used the 2015 population data to keep consistent across run. 
+```{r pop}
+ggplot()+
+  geom_spatraster(data=r_pop) +
+  # geom_spatvector(data=aoi, fill="transparent") +
+  geom_spatvector(data=dam_locs, col="black") +
+  scale_fill_continuous(palette = "Blues")+
+  facet_wrap(~lyr, labeller = nice_titles)
+```
+
+### Summary  
+```{r covsummary}
+tmp <- cbind(
+  global(r_water == 1, "sum", na.rm = TRUE),
+  global(r_ndvi_dry, "mean", na.rm=TRUE),
+  global(r_ndvi_wet, "mean", na.rm=TRUE),
+  global(r_temp_dry, "mean", na.rm=TRUE),
+  global(r_temp_wet, "mean", na.rm=TRUE)
+)
+tmp$sum1 <- c(global(r_pop, "sum", na.rm=TRUE)$sum, NA, NA, NA)
+colnames(tmp) <- str_replace_all(paste(colnames(tmp), r_names), "_", " ")
+rownames(tmp) <- r_years
+
+tmp %>% 
+  mutate(across(everything(), ~round(.x, 2))) %>%
+  rownames_to_column("year") %>% 
+  DT::datatable()
+
+tmp %>% 
+    rownames_to_column("year") %>% 
+    mutate(year = as.integer(year)) %>%
+    pivot_longer(-year, names_to = "metric", values_to = "value") %>% 
+    ggplot(aes(x=year, y=value)) +
+    geom_point() + geom_line() +
+    facet_wrap(~metric, scales="free_y") +
+  scale_x_continuous(breaks = as.integer(r_years))
+
+## clean up workspace
+# rm(r_ndvi_dry, r_ndvi_wet, r_pop, r_temp_dry, r_temp_wet, r_water, tmp)
+```
+
+:::
+
+
+## Risk assessments
+```{r riskdat}
+fl <- list.files("G:/My Drive/De Leo Lab/projects/InVEST_schisto/CIV/Bas-Sassandra/cropped_output/", full.names = T)
+fl <- fl[which(str_detect(fl, "tif"))]
+fl <- fl[-which(str_detect(fl, "unmasked"))]
+
+r_risk <- rast(fl[which(str_detect(fl, "risk"))])
+r_suit <- rast(fl[which(str_detect(fl, "suit"))])
+```
+
+### Risk  
+
+The InVEST model outputs various risk estimates:  
+
+* **convolved_hab_risk**  
+* normalized_convolved_risk  
+* risk_to_pop_abs  
+* **risk_to_pop_count_abs**  
+* risk_to_pop_count_rel  
+* risk_to_pop_rel  
+
+For the purposes of comparing between scenarios (e.g., our timepoints) the most useful outputs for comparing between scenarios are convoluted habitat risk and risk to population count absolute, as the normalized risk is normalized to within the scenario (bounded [0,1]) and [population's are relative to the total???]{style="color: red;"}, which isn't necessary since only the 2015 'baseline' populaton data was used in the model. 
+
+::: {.panel-tabset}
+```{r risk}
+#| results: asis
+#| echo: false
+
+## vector of the names of all the risk estimates
+nms <- names(r_risk) %>% 
+  str_remove_all("_[0-9][0-9][0-9][0-9]") %>% 
+  unique()
+
+## subset names to just the 2 layers of interested
+# nms <- nms[c(1, 3)] ## commenting out because the population doesn't make sense, the total population is 213,380
+
+## store results
+g_res <- data.frame()
+
+## plot estimates and extract values
+for (i in 1:length(nms)) {
+  
+  ## tab header
+  cat(paste0("\n#### ", nms[i], "\n\n"))
+  
+  ## which r
+  rr <- r_risk[[which(str_detect(names(r_risk), nms[i]))]]
+  
+  print(
+    ggplot() +
+      geom_spatraster(data=rr)+
+      facet_wrap(~lyr, labeller = nice_titles)
+  )
+  ## mean values and sum of entire area
+  g_res <- global(rr, c("sum", "mean", "sd"), na.rm = TRUE) %>% 
+    rownames_to_column("var") %>% 
+    rbind(g_res)
+  
+  ## newline
+  cat("\n\n")
+}
+```
+:::
+
+Summary table for the total AOI. 
+```{r risksummary}
+g_res <- g_res %>% 
+  mutate(year = str_sub(var, -4, -1),
+         year = as.integer(year),
+         var = str_sub(var, 1, -6))
+g_res %>% 
+  mutate(across(sum:sd, ~round(.x, 2))) %>% 
+  DT::datatable(filter="top")
+
+g_res %>% 
+  ggplot(aes(x= year, y=mean))+
+  geom_line() + 
+  geom_point() +
+  scale_x_continuous(breaks = as.numeric(r_years)) +
+  facet_wrap(~var, scales="free_y", labeller = nice_titles) +
+  labs(y= "Mean of AOI")
+
+g_res %>% 
+  ggplot(aes(x=year, y=sum))+
+  geom_line() + 
+  geom_point() +
+  scale_x_continuous(breaks = as.numeric(r_years)) +
+  facet_wrap(~var, scales="free_y", labeller = nice_titles) +
+  labs(y = "Sum of AOI") 
+```
+
+### Suitability
+
+::: {.panel-tabset}
+```{r suit}
+#| results: asis
+#| echo: false
+
+nms <- names(r_suit) %>% 
+  str_remove_all("_[0-9][0-9][0-9][0-9]") %>% 
+  unique()
+
+s_res <- data.frame()
+
+for (i in 1:length(nms)) {
+  
+  ## tab header
+  cat(paste0("\n#### ", nms[i], "\n\n"))
+  
+  ## which r
+  rr <- r_suit[[which(str_detect(names(r_suit), nms[i]))]]
+  
+  print(
+    ggplot() +
+      geom_spatraster(data=rr)+
+      facet_wrap(~lyr, labeller = nice_titles)
+  )
+  ## mean values and sum of entire area
+  s_res <- global(rr, c("sum", "mean", "sd"), na.rm = TRUE) %>% 
+    rownames_to_column("var") %>% 
+    rbind(s_res)
+  
+  ## newline
+  cat("\n\n")
+}
+```
+
+:::
+
+Summary table for the total AOI. 
+```{r suitsummary}
+s_res <- s_res %>% 
+  mutate(year = str_sub(var, -4, -1),
+         year = as.integer(year),
+         var = str_sub(var, 1, -6))
+s_res %>% 
+  mutate(across(sum:sd, ~round(.x, 2))) %>% 
+  DT::datatable(filter="top")
+
+s_res %>% 
+  ggplot(aes(x= year, y=mean))+
+  geom_line() + geom_point() +
+  scale_x_continuous(breaks = as.numeric(r_years)) +
+  facet_wrap(~var, scales="free_y", labeller = nice_titles)
+
+s_res %>% 
+  ggplot(aes(x=year, y=sum))+
+  geom_line() + geom_point() +
+  scale_x_continuous(breaks = as.numeric(r_years)) +
+  facet_wrap(~var, scales="free_y", labeller = nice_titles)
+```
+
+### Correlation between suitability and risk  
+```{r}
+## for risk just two trends use convolved_hab_risk, normalized_convolved_risk to rep these
+gs_res <- g_res %>% 
+    filter(var %in% c("convolved_hab_risk", "normalized_convolved_risk")) %>% 
+    rbind(s_res) %>% 
+    group_by(var) %>% 
+    mutate(across(sum:sd, scale)) 
+
+cor_long <- gs_res %>% 
+    select(var, mean, year) %>% 
+  pivot_wider(names_from = var, values_from = mean)%>% 
+    select(-year) %>% 
+  cor() %>% 
+  as.data.frame() %>% 
+  rownames_to_column(var = "var1") %>% 
+  pivot_longer(
+    cols = -var1, 
+    names_to = "var2", 
+    values_to = "correlation"
+  )
+
+cor_long %>% 
+    filter(str_detect(var1, "risk"),
+           !str_detect(var2, "risk")
+           ) %>% 
+    ggplot(aes(x=var1, y=var2, fill=correlation)) +
+    geom_tile() +
+    scale_fill_continuous(palette = "Reds")
+
+gs_res %>% 
+    ggplot(aes(x=year, y=mean)) + 
+    geom_line() + geom_point() +
+  facet_wrap(~var, scales="free_y", labeller = nice_titles)
+```
+
+## Ground truth  
+  
+### ESPEN data on prevalence  
+```{r espen}
+#| eval: false
+
+
+fp <- "G:/My Drive/De Leo Lab/projects/InVEST_schisto/schisto_waterlayers/data/"
+
+v_epsen <- st_read(paste0(fp, "prevalence_raw/ESPEN_IU_2015.shp"))
+v_epsen <- st_transform(v_epsen, crs(region_aoi))
+v_epsen <- st_crop(v_epsen, region_aoi)
+# plot(v_epsen)
+
+# civ <- rgeoboundaries::gb_adm3(country = "CIV")
+# civ <- st_transform(civ, crs(aoi))
+# civ <- st_crop(civ, aoi)
+# plot(civ)  
+
+print(paste("The dams are in the", v_epsen$ADMIN1, "region"))
+
+epsen_inf <- read.csv(paste0(fp, "prevalence_raw/data-CI-SCH-iu-2014-2024-20260506_161004.csv"))
+epsen_inf <- epsen_inf %>% 
+  filter(admin1 %in% v_epsen$ADMIN1,
+         targetPop == "Total",
+         year %in% as.numeric(r_years)) %>% 
+  select(admin1, year, endemicity) %>% 
+  mutate(endemicity = ifelse(endemicity == "Prevalence 50% and above", "High prevalence (50% and above)", endemicity),
+         endemicity = factor(endemicity, levels = c("Not reported", "Non-endemic", "Low prevalence (less than 10%)",
+                                                    "Moderate prevalence (10%-49%)", "High prevalence (50% and above)"))) %>% 
+  group_by(admin1, year) %>% 
+  slice_max(endemicity, with_ties = F) %>% 
+  pivot_wider(names_from = year, names_prefix = "EPSEN_", values_from = endemicity)
+
+epsen_inf %>% 
+  pivot_longer(-admin1, names_to = "Year", values_to = "Endemicity") %>% 
+  pivot_wider(names_from = admin1, values_from = Endemicity)
+
+## don't do this because only one region
+v_epsen <- v_epsen %>%
+  left_join(epsen_inf, by = c("ADMIN1" = "admin1")) %>% 
+  pivot_longer(starts_with("EPSEN"), names_to = "year", values_to = "value") 
+
+
+ggplot() +
+  tidyterra::geom_spatvector(data = v_epsen, aes(fill=value))+
+  facet_wrap(~year, labeller = nice_titles) +
+  geom_sf(data = aoi, fill = "transparent", col="black", lwd=1)
+```
+
+### Schools data  
+
+```{r}
+fp <- "G:/My Drive/De Leo Lab/projects/InVEST_schisto/schisto_waterlayers/data/"
+
+schools <- st_read(paste0(fp, "civ_schools/civ_schools_v2.shp")) %>% 
+  st_transform(crs(aoi))
+
+schools_aoi <- schools  %>% 
+  st_filter(st_as_sf(aoi))
+
+schools_region <- schools %>% 
+  st_filter(st_as_sf(region_aoi))
+
+## Small AOI Sm
+ggplot()+
+  geom_spatraster(data=r_risk, aes(fill = convolved_hab_risk_2015)) +
+  geom_spatvector(data=aoi, fill="transparent") +
+  geom_spatvector(data=dam_locs, col="red", pch="|", aes(col="Future dam")) +
+  geom_sf(data=schools_aoi, aes(size = sm_prev, col=factor(year))) +
+  scale_fill_continuous(palette = "Blues") +
+  labs(col=NULL, size = "Prevalence (%)", 
+       fill = "Convoluted\nhabitat\nrisk (2015)",
+       title = "Schools dataset: S. mansoni")
+
+## Small AOI Sh
+ggplot()+
+  geom_spatraster(data=r_risk, aes(fill = convolved_hab_risk_2015)) +
+  geom_spatvector(data=aoi, fill="transparent") +
+  geom_spatvector(data=dam_locs, col="red", pch="|", aes(col="Future dam")) +
+  geom_sf(data=schools_aoi, aes(size = sh_prev, col=factor(year))) +
+  scale_fill_continuous(palette = "Blues") +
+  labs(col=NULL, size = "Prevalence\n(%)", 
+       fill = "Convoluted\nhabitat\nrisk (2015)",
+       title = "Schools dataset: S. haematobium")
+
+## Region Sm
+ggplot()+
+  geom_spatraster(data=r_risk, aes(fill = convolved_hab_risk_2015)) +
+  geom_spatvector(data=aoi, fill="transparent") +
+  geom_spatvector(data=region_aoi, fill="transparent") +
+  # geom_spatvector(data=dam_locs, col="red", pch="|", aes(col="Future dam")) +
+  geom_sf(data=schools_region, aes(size = sm_prev, col=factor(year)),
+          alpha=0.5) +
+  scale_fill_continuous(palette = "Blues") +
+  labs(col=NULL, size = "Prevalence (%)", 
+       fill = "Convoluted\nhabitat\nrisk (2015)",
+       title = "Schools dataset: S. mansoni")
+
+ggplot()+
+  geom_spatraster(data=r_risk, aes(fill = convolved_hab_risk_2015)) +
+  geom_spatvector(data=aoi, fill="transparent") +
+  geom_spatvector(data=region_aoi, fill="transparent") +
+  # geom_spatvector(data=dam_locs, col="red", pch="|", aes(col="Future dam")) +
+  geom_sf(data=schools_region, aes(size = sh_prev, col=factor(year)),
+          alpha=0.5) +
+  scale_fill_continuous(palette = "Blues") +
+  labs(col=NULL, size = "Prevalence\n(%)", 
+       fill = "Convoluted\nhabitat\nrisk (2015)",
+       title = "Schools dataset: S. haematobium")
+```
+
+## Appendix 
+
+### GEE Code 
+
+To add Java code/link here.
