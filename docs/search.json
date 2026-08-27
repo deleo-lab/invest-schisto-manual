@@ -7,6 +7,48 @@
     "text": "Untitled\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nBefore and After Dam Construction\n\n\n\nInVEST\n\nScenario\n\n\n\n\n\n\n\nKayla Kauffman\n\n\nJun 25, 2026\n\n\n\n\n\n\n\n\n\n\n\n\n\nUnderstanding the model inputs\n\n\n\nInVEST\n\nQuickstart\n\nParameters\n\n\n\nDetails on the model parameters and how the model works\n\n\n\n\n\n\nFeb 5, 2026\n\n\n\n\n\n\n\n\n\n\n\n\n\nRunning sample models\n\n\n\nInVEST\n\nQuickstart\n\n\n\nUse our sample data to run your first model\n\n\n\n\n\n\nFeb 4, 2026\n\n\n\n\n\n\n\n\n\n\n\n\n\nDownloading InVEST and the Schistosomiasis Plugin\n\n\n\nInVEST\n\nQuickstart\n\n\n\nQuick-start Instructions\n\n\n\n\n\n\nNov 24, 2025\n\n\n\n\n\n\nNo matching items"
   },
   {
+    "objectID": "tutorials/05_dam_scenario_nawa/index.html",
+    "href": "tutorials/05_dam_scenario_nawa/index.html",
+    "title": "Before and After Dam Construction",
+    "section": "",
+    "text": "In the Bas Sassandra region of Cote d’Ivoire two hydroelectic dams were recently built:\n\nGribo-Popoli Hydroelectric Power Station started construction in 2018 and finished in mid 2024\n\nSoubre Hydroelectric Power Station which started construction in 2016 and finished in 2018.\n\nThis leaves 4 interesting timepoints for comparing the schistosomiasis risk in the region:\n\n2015 before any construction\n\n2017 during Soubre Dam construction / before Gribo-Popoli\n\n2019 Soubre construction complete/Gribo-Popoli under construction\n\n2025 Gribo-Popoli complete"
+  },
+  {
+    "objectID": "tutorials/05_dam_scenario_nawa/index.html#background",
+    "href": "tutorials/05_dam_scenario_nawa/index.html#background",
+    "title": "Before and After Dam Construction",
+    "section": "",
+    "text": "In the Bas Sassandra region of Cote d’Ivoire two hydroelectic dams were recently built:\n\nGribo-Popoli Hydroelectric Power Station started construction in 2018 and finished in mid 2024\n\nSoubre Hydroelectric Power Station which started construction in 2016 and finished in 2018.\n\nThis leaves 4 interesting timepoints for comparing the schistosomiasis risk in the region:\n\n2015 before any construction\n\n2017 during Soubre Dam construction / before Gribo-Popoli\n\n2019 Soubre construction complete/Gribo-Popoli under construction\n\n2025 Gribo-Popoli complete"
+  },
+  {
+    "objectID": "tutorials/05_dam_scenario_nawa/index.html#data-used",
+    "href": "tutorials/05_dam_scenario_nawa/index.html#data-used",
+    "title": "Before and After Dam Construction",
+    "section": "Data used",
+    "text": "Data used\nThe rasters used in this analysis were downloaded using Google Earth Engine. The code for this is included in the appendix.\n\n\n\n\n\n\n\n\n\n\nWater MaskNDVI dryNDVI wetWater Temp dryWater Temp wetPopulationSummary\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nIn the 6/30 model run used the 2015 population data to keep consistent across run.\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n|---------|---------|---------|---------|\n========================================="
+  },
+  {
+    "objectID": "tutorials/05_dam_scenario_nawa/index.html#risk-assessments",
+    "href": "tutorials/05_dam_scenario_nawa/index.html#risk-assessments",
+    "title": "Before and After Dam Construction",
+    "section": "Risk assessments",
+    "text": "Risk assessments\n\nRisk\nThe InVEST model outputs various risk estimates:\n\nconvolved_hab_risk\n\nnormalized_convolved_risk\n\nrisk_to_pop_abs\n\nrisk_to_pop_count_abs\n\nrisk_to_pop_count_rel\n\nrisk_to_pop_rel\n\nFor the purposes of comparing between scenarios (e.g., our timepoints) the most useful outputs for comparing between scenarios are convoluted habitat risk and risk to population count absolute, as the normalized risk is normalized to within the scenario (bounded [0,1]) and population’s are relative to the total???, which isn’t necessary since only the 2015 ‘baseline’ populaton data was used in the model.\n\nconvolved_hab_risknormalized_convolved_riskrisk_to_pop_absrisk_to_pop_count_absrisk_to_pop_count_relrisk_to_pop_rel\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nSummary table for the total AOI.\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nSuitability\n\nhabitat_suit_weighted_meanndvi_suit_dryndvi_suit_wetparasite_water_temp_suit_dryparasite_water_temp_suit_wetpopulation_suit_sqkmpopulation_suitabilitysnail_water_temp_suit_drysnail_water_temp_suit_wetwater_depth_suit\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nSummary table for the total AOI.\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nCorrelation between suitability and risk"
+  },
+  {
+    "objectID": "tutorials/05_dam_scenario_nawa/index.html#ground-truth",
+    "href": "tutorials/05_dam_scenario_nawa/index.html#ground-truth",
+    "title": "Before and After Dam Construction",
+    "section": "Ground truth",
+    "text": "Ground truth\n\nESPEN data on prevalence\n\n\nSchools data\n\n\nReading layer `civ_schools_v2' from data source \n  `G:\\My Drive\\De Leo Lab\\projects\\InVEST_schisto\\schisto_waterlayers\\data\\civ_schools\\civ_schools_v2.shp' \n  using driver `ESRI Shapefile'\nSimple feature collection with 1818 features and 16 fields\nGeometry type: POINT\nDimension:     XY\nBounding box:  xmin: -8.51 ymin: 4.364605 xmax: -2.57725 ymax: 10.48764\nGeodetic CRS:  WGS 84"
+  },
+  {
+    "objectID": "tutorials/05_dam_scenario_nawa/index.html#appendix",
+    "href": "tutorials/05_dam_scenario_nawa/index.html#appendix",
+    "title": "Before and After Dam Construction",
+    "section": "Appendix",
+    "text": "Appendix\n\nGEE Code\nTo add Java code/link here."
+  },
+  {
     "objectID": "tutorials/03_model_parameters/index.html",
     "href": "tutorials/03_model_parameters/index.html",
     "title": "Understanding the model inputs",
@@ -131,47 +173,5 @@
     "title": "Untitled",
     "section": "",
     "text": "library(tidyverse)\n\n── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──\n✔ dplyr     1.2.0     ✔ readr     2.2.0\n✔ forcats   1.0.1     ✔ stringr   1.6.0\n✔ ggplot2   4.0.2     ✔ tibble    3.3.1\n✔ lubridate 1.9.5     ✔ tidyr     1.3.2\n✔ purrr     1.2.1     \n── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──\n✖ dplyr::filter() masks stats::filter()\n✖ dplyr::lag()    masks stats::lag()\nℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors\n\nggplot(data=mtcars, aes(x=mpg, y=hp)) +geom_point(col=\"red\") +geom_line()"
-  },
-  {
-    "objectID": "tutorials/05_dam_scenario_nawa/index.html",
-    "href": "tutorials/05_dam_scenario_nawa/index.html",
-    "title": "Before and After Dam Construction",
-    "section": "",
-    "text": "In the Bas Sassandra region of Cote d’Ivoire two hydroelectic dams were recently built:\n\nGribo-Popoli Hydroelectric Power Station started construction in 2018 and finished in mid 2024\n\nSoubre Hydroelectric Power Station which started construction in 2016 and finished in 2018.\n\nThis leaves 4 interesting timepoints for comparing the schistosomiasis risk in the region:\n\n2015 before any construction\n\n2017 during Soubre Dam construction / before Gribo-Popoli\n\n2019 Soubre construction complete/Gribo-Popoli under construction\n\n2025 Gribo-Popoli complete"
-  },
-  {
-    "objectID": "tutorials/05_dam_scenario_nawa/index.html#background",
-    "href": "tutorials/05_dam_scenario_nawa/index.html#background",
-    "title": "Before and After Dam Construction",
-    "section": "",
-    "text": "In the Bas Sassandra region of Cote d’Ivoire two hydroelectic dams were recently built:\n\nGribo-Popoli Hydroelectric Power Station started construction in 2018 and finished in mid 2024\n\nSoubre Hydroelectric Power Station which started construction in 2016 and finished in 2018.\n\nThis leaves 4 interesting timepoints for comparing the schistosomiasis risk in the region:\n\n2015 before any construction\n\n2017 during Soubre Dam construction / before Gribo-Popoli\n\n2019 Soubre construction complete/Gribo-Popoli under construction\n\n2025 Gribo-Popoli complete"
-  },
-  {
-    "objectID": "tutorials/05_dam_scenario_nawa/index.html#data-used",
-    "href": "tutorials/05_dam_scenario_nawa/index.html#data-used",
-    "title": "Before and After Dam Construction",
-    "section": "Data used",
-    "text": "Data used\nThe rasters used in this analysis were downloaded using Google Earth Engine. The code for this is included in the appendix.\n\n\n\n\n\n\n\n\n\n\nWater MaskNDVI dryNDVI wetWater Temp dryWater Temp wetPopulationSummary\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nIn the 6/30 model run used the 2015 population data to keep consistent across run.\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n|---------|---------|---------|---------|\n========================================="
-  },
-  {
-    "objectID": "tutorials/05_dam_scenario_nawa/index.html#risk-assessments",
-    "href": "tutorials/05_dam_scenario_nawa/index.html#risk-assessments",
-    "title": "Before and After Dam Construction",
-    "section": "Risk assessments",
-    "text": "Risk assessments\n\nRisk\nThe InVEST model outputs various risk estimates:\n\nconvolved_hab_risk\n\nnormalized_convolved_risk\n\nrisk_to_pop_abs\n\nrisk_to_pop_count_abs\n\nrisk_to_pop_count_rel\n\nrisk_to_pop_rel\n\nFor the purposes of comparing between scenarios (e.g., our timepoints) the most useful outputs for comparing between scenarios are convoluted habitat risk and risk to population count absolute, as the normalized risk is normalized to within the scenario (bounded [0,1]) and population’s are relative to the total???, which isn’t necessary since only the 2015 ‘baseline’ populaton data was used in the model.\n\nconvolved_hab_risknormalized_convolved_riskrisk_to_pop_absrisk_to_pop_count_absrisk_to_pop_count_relrisk_to_pop_rel\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nSummary table for the total AOI.\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nSuitability\n\nhabitat_suit_weighted_meanndvi_suit_dryndvi_suit_wetparasite_water_temp_suit_dryparasite_water_temp_suit_wetpopulation_suit_sqkmpopulation_suitabilitysnail_water_temp_suit_drysnail_water_temp_suit_wetwater_depth_suit\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nSummary table for the total AOI.\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nCorrelation between suitability and risk"
-  },
-  {
-    "objectID": "tutorials/05_dam_scenario_nawa/index.html#ground-truth",
-    "href": "tutorials/05_dam_scenario_nawa/index.html#ground-truth",
-    "title": "Before and After Dam Construction",
-    "section": "Ground truth",
-    "text": "Ground truth\n\nESPEN data on prevalence\n\n\nSchools data\n\n\nReading layer `civ_schools_v2' from data source \n  `G:\\My Drive\\De Leo Lab\\projects\\InVEST_schisto\\schisto_waterlayers\\data\\civ_schools\\civ_schools_v2.shp' \n  using driver `ESRI Shapefile'\nSimple feature collection with 1818 features and 16 fields\nGeometry type: POINT\nDimension:     XY\nBounding box:  xmin: -8.51 ymin: 4.364605 xmax: -2.57725 ymax: 10.48764\nGeodetic CRS:  WGS 84"
-  },
-  {
-    "objectID": "tutorials/05_dam_scenario_nawa/index.html#appendix",
-    "href": "tutorials/05_dam_scenario_nawa/index.html#appendix",
-    "title": "Before and After Dam Construction",
-    "section": "Appendix",
-    "text": "Appendix\n\nGEE Code\nTo add Java code/link here."
   }
 ]
