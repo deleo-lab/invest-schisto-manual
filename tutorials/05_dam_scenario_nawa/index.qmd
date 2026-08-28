@@ -19,7 +19,7 @@ library(terra)
 library(sf)
 library(tidyterra)
 
-theme_set(theme_bw())
+theme_set(theme_bw(base_size = 9))
 theme_update(strip.background = element_rect(fill = "white"))
 nice_titles <- as_labeller(function(x) {str_to_sentence(str_replace_all(x, "_", " "))})
 ```
@@ -417,7 +417,8 @@ cor_long %>%
            ) %>% 
     ggplot(aes(x=var1, y=var2, fill=correlation)) +
     geom_tile() +
-    scale_fill_continuous(palette = "Reds")
+    scale_fill_continuous(palette = "Reds") +
+  labs(x=NULL, y=NULL)
 
 gs_res %>% 
     ggplot(aes(x=year, y=mean)) + 
@@ -429,8 +430,6 @@ gs_res %>%
   
 ### ESPEN data on prevalence  
 ```{r espen}
-#| eval: false
-
 
 fp <- "G:/My Drive/De Leo Lab/projects/InVEST_schisto/schisto_waterlayers/data/"
 

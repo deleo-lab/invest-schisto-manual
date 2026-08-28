@@ -1,0 +1,56 @@
+---
+title: "InVEST get your own data"
+author: "Kayla Kauffman"
+---
+
+Start with global datasets. NASA, ESA have lots of available. 
+It gets you started. Then you can start working in the "better" local datasets. 
+The coarse, publically available get you in the door, partners might bring other data.class
+
+Steps in an assessment. Create scenarios - land cover change, climate changed
+Scenarios need to be plausible, simplified, relevant descriptions of the future
+Because they are spatial they need to be spatial. 
+
+* Each group with have own scenarios of interest 
+* RIOS: tool made for water funds - what ecosystem services do we care about, whats the budget, what activities do you want to do. RIOS generates maps of the best places to do these management activites. 
+
+How does a 'supply' become a service?
+
+* only when people benefit
+* need to put people on the map
+* can put a value on the service
+* supply (ecological function) -> service (supply + location and activity of beneficiaries) -> value (service + social preference)
+* supply and service are modeling/geospatial processing steps
+
+Analyze
+
+* visualize change between scenarios
+* caluculate service value
+Tools: InVEST, ARIES, SWAT (soil & water assessment tool)
+SWAT takes a long time to set up, creates the sedimentation and flow maps for water availability
+
+Create results
+* art + science + politics
+* tailor to the audience (farmers vs gov't vs academic)
+* understand what you did, what results mean, what you reccommend 
+* format: webviewers, reports, videos, a single graph?, summary by land cover
+* big simple numbers, help identify intervention points
+
+Evaluate & Iterate
+* Use the big global datasets first, they get the conversation started
+* partners will have feedback on how to improve, might have other data (involvement with partners is key to buy in!)
+
+Example for Nairobi Water Fund
+* interated with cost infomration from partners
+* refine activites and land cover based on local knowledge
+* synchronized and synthesized input
+
+InVEST
+* all models have input and biophysical table (diff parameters for diff landcover types)
+* Datahub: new features to ease data input acquisition (essentially a collection of global datasets)
+* Do I need GIS skills? Yes to create the inputs, interpret the outputs
+* user guide includes how to process own data and ideas of global datasets
+* User their inputs (user guide sample data) as template for own data
+
+MISC
+* how to we include mitigation scenarios in tool?

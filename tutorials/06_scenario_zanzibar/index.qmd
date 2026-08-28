@@ -1,0 +1,9 @@
+---
+title: "Untitled"
+---
+
+```{r}
+library(tidyverse)
+ggplot(data=mtcars, aes(x=mpg, y=hp)) +geom_point(col="red") +geom_line()
+```
+
