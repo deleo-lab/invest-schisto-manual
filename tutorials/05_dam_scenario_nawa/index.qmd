@@ -144,7 +144,8 @@ ggplot()+
   geom_spatraster(data=r_water, show.legend = F) +
   # geom_spatvector(data=aoi, fill="transparent") +
   geom_spatvector(data=dam_locs, col="red") +
-  facet_wrap(~lyr, labeller = nice_titles)
+  facet_wrap(~lyr, labeller = nice_titles) +
+  scale_x_continuous(n.breaks = 4)
 ```
 
 ### NDVI dry
@@ -155,7 +156,8 @@ ggplot()+
   # geom_spatvector(data=aoi, fill="transparent") +
   geom_spatvector(data=dam_locs, col="red") +
   scale_fill_continuous(palette = "YlGn")+
-  facet_wrap(~lyr, labeller = nice_titles)
+  facet_wrap(~lyr, labeller = nice_titles) +
+  scale_x_continuous(n.breaks = 4)
 ```
   
 ### NDVI wet  
@@ -165,7 +167,8 @@ ggplot()+
   # geom_spatvector(data=aoi, fill="transparent") +
   geom_spatvector(data=dam_locs, col="red") +
   scale_fill_continuous(palette = "YlGn")+
-  facet_wrap(~lyr, labeller = nice_titles)
+  facet_wrap(~lyr, labeller = nice_titles) +
+  scale_x_continuous(n.breaks = 4)
 ```
   
 ### Water Temp dry  
@@ -175,7 +178,8 @@ ggplot()+
   # geom_spatvector(data=aoi, fill="transparent") +
   geom_spatvector(data=dam_locs, col="black") +
   scale_fill_continuous(palette = "PuRd")+
-  facet_wrap(~lyr, labeller = nice_titles)
+  facet_wrap(~lyr, labeller = nice_titles) +
+  scale_x_continuous(n.breaks = 4)
 ```
 
 ### Water Temp wet
@@ -185,7 +189,8 @@ ggplot()+
   # geom_spatvector(data=aoi, fill="transparent") +
   geom_spatvector(data=dam_locs, col="black") +
   scale_fill_continuous(palette = "PuRd")+
-  facet_wrap(~lyr, labeller = nice_titles)
+  facet_wrap(~lyr, labeller = nice_titles) +
+  scale_x_continuous(n.breaks = 4)
 ```
   
 ### Population  
@@ -198,7 +203,8 @@ ggplot()+
   geom_spatvector(data=dam_locs, col="black") +
   # scale_fill_continuous(palette = "Blues")+
   scale_fill_grass_c(palette = "bcyr") +
-  facet_wrap(~lyr, labeller = nice_titles)
+  facet_wrap(~lyr, labeller = nice_titles) +
+  scale_x_continuous(n.breaks = 4)
 ```
 
 ### Summary  
@@ -250,13 +256,13 @@ r_suit <- rast(fl[which(str_detect(fl, "suit"))])
 The InVEST model outputs:  
 
 * **convolved_hab_risk**  
-* normalized_convolved_risk  
+* normalized_Convolved_risk  
 * risk_to_pop_abs  
 * risk_to_pop_count_abs
 * **risk_to_pop_count_rel**  
 * risk_to_pop_rel  
 
-For the purposes of comparing between scenarios (e.g., our timepoints) the most useful outputs for comparing between scenarios are convoluted habitat risk and risk to population count relative, as the normalized risk is normalized to within the scenario (bounded [0,1]) and risk to pop count rel is the only prediction at population-scale. 
+For the purposes of comparing between scenarios (e.g., our timepoints) the most useful outputs for comparing between scenarios are Convolved habitat risk and risk to population count relative, as the normalized risk is normalized to within the scenario (bounded [0,1]) and risk to pop count rel is the only prediction at population-scale. 
 
 ::: {.panel-tabset}
 ```{r risk}
@@ -397,9 +403,9 @@ s_res %>%
 
 ### Correlation between suitability and risk  
 ```{r}
-## for risk just two trends use convolved_hab_risk, normalized_convolved_risk to rep these
+## for risk just two trends use convolved_hab_risk, normalized_Convolved_risk to rep these
 gs_res <- g_res %>% 
-    filter(var %in% c("convolved_hab_risk", "normalized_convolved_risk")) %>% 
+    filter(var %in% c("convolved_hab_risk", "normalized_Convolved_risk")) %>% 
     rbind(s_res) %>% 
     group_by(var) %>% 
     mutate(across(sum:sd, scale)) 
@@ -434,6 +440,10 @@ gs_res %>%
 
 ## Delve into population  
 ```{r poptracking}
+#| echo: true
+#| code-fold: true
+
+
 ## plot all the pop inputs/intermed/outputs in order
 p1 <- ggplot()+
   geom_spatraster(data=r_pop$population_2015) +
@@ -519,7 +529,7 @@ tmp <- rbind(
   pivot_longer(-var, names_to = "metric", values_to = "value") %>% 
   pivot_wider(names_from = "var", values_from = "value") 
 
-## pop suit * convolved risk abs = pop risk abs
+## pop suit * Convolved risk abs = pop risk abs
 tmp %>% 
   # select(metric, population_suitability, convolved_hab_risk, risk_to_pop_abs) %>% 
   mutate(check_pop_abs = population_suitability * convolved_hab_risk) %>% 
@@ -534,7 +544,7 @@ tmp %>%
   select(metric, risk_to_pop_count_abs_2015_rescaled, risk_to_pop_count_abs,
          check_pop_abs_count_km2, check_pop_abs_count_input)
 
-## pop size risk * convolved risk = normalized relative risk to pop
+## pop size risk * Convolved risk = normalized relative risk to pop
 tmp %>% 
   # select(metric, population_suitability, convolved_hab_risk, risk_to_pop_rel) %>% 
   mutate(check_pop_rel = population_suitability * convolved_hab_risk) %>% 
@@ -618,7 +628,7 @@ ggplot()+
   geom_sf(data=schools_aoi, aes(size = sm_prev, col=factor(year))) +
   scale_fill_continuous(palette = "Blues") +
   labs(col=NULL, size = "Prevalence (%)", 
-       fill = "Convoluted\nhabitat\nrisk (2015)",
+       fill = "Convolved\nhabitat\nrisk (2015)",
        title = "Schools dataset: S. mansoni")
 
 ## Small AOI Sh
@@ -629,7 +639,7 @@ ggplot()+
   geom_sf(data=schools_aoi, aes(size = sh_prev, col=factor(year))) +
   scale_fill_continuous(palette = "Blues") +
   labs(col=NULL, size = "Prevalence\n(%)", 
-       fill = "Convoluted\nhabitat\nrisk (2015)",
+       fill = "Convolved\nhabitat\nrisk (2015)",
        title = "Schools dataset: S. haematobium")
 
 ## Region Sm
@@ -642,7 +652,7 @@ ggplot()+
           alpha=0.5) +
   scale_fill_continuous(palette = "Blues") +
   labs(col=NULL, size = "Prevalence (%)", 
-       fill = "Convoluted\nhabitat\nrisk (2015)",
+       fill = "Convolved\nhabitat\nrisk (2015)",
        title = "Schools dataset: S. mansoni")
 
 ggplot()+
@@ -654,7 +664,7 @@ ggplot()+
           alpha=0.5) +
   scale_fill_continuous(palette = "Blues") +
   labs(col=NULL, size = "Prevalence\n(%)", 
-       fill = "Convoluted\nhabitat\nrisk (2015)",
+       fill = "Convolved\nhabitat\nrisk (2015)",
        title = "Schools dataset: S. haematobium")
 ```
 

@@ -1,7 +1,7 @@
 ---
 title: "Pemba elimination scenario"
 author: "Kayla Kauffman"
-date: 06-25-2026 #important if sorting by date in tutorials
+date: 07-25-2026 #important if sorting by date in tutorials
 categories: [InVEST, Scenario] #rough ideas if want tags
 image: invest-logo-registeredtm_202305_150dpi_0.png #must be in this folder
 execute: 
@@ -245,13 +245,13 @@ ggplot() +
 ```{r}
 ggplot()+
   geom_spatraster(data=r_temp_dry) +
-  facet_wrap(~lyr, labeller = nice_titles) +
+  facet_wrap(~lyr, labeller = nice_titles, nrow=2) +
   theme_void() +
   scale_fill_whitebox_c(palette = "muted", direction = -1) 
 
 ggplot()+
   geom_spatraster(data=r_temp_dry_BT) +
-  facet_wrap(~lyr, labeller = nice_titles) +
+  facet_wrap(~lyr, labeller = nice_titles, nrow=2) +
   theme_void() +
   scale_fill_whitebox_c(palette = "muted", direction = -1) 
 
@@ -278,13 +278,13 @@ ggplot() +
 ```{r}
 ggplot()+
   geom_spatraster(data=r_temp_wet) +
-  facet_wrap(~lyr, labeller = nice_titles) +
+  facet_wrap(~lyr, labeller = nice_titles, nrow=2) +
   theme_void() + 
   scale_fill_whitebox_c(palette = "muted", direction = -1)
 
 ggplot()+
   geom_spatraster(data=r_temp_wet_BT) +
-  facet_wrap(~lyr, labeller = nice_titles) +
+  facet_wrap(~lyr, labeller = nice_titles, nrow=2) +
   theme_void() +
   scale_fill_whitebox_c(palette = "muted", direction = -1) 
 
@@ -303,7 +303,7 @@ ggplot() +
 ```{r}
 ggplot()+
   geom_spatraster(data=r_ndvi_dry) +
-  facet_wrap(~lyr, labeller = nice_titles) +
+  facet_wrap(~lyr, labeller = nice_titles, nrow=2) +
   theme_void() + 
   scale_fill_whitebox_c(palette = "soft", direction = -1)
 ```
@@ -312,7 +312,7 @@ ggplot()+
 ```{r}
 ggplot()+
   geom_spatraster(data=r_ndvi_wet) +
-  facet_wrap(~lyr, labeller = nice_titles) +
+  facet_wrap(~lyr, labeller = nice_titles, nrow=2) +
   theme_void() + 
   scale_fill_whitebox_c(palette = "soft", direction = -1)
 ```
@@ -352,7 +352,7 @@ ggplot() +
 
 ## correlations
 layerCor(r_risk_cov_hab, fun="cor")$correlation %>% 
-  round(., 2)
+  knitr::kable(digits = 2, caption = "Pearson's correlations")
 
 # rm(r_risk_cov_hab)
 ```
@@ -387,7 +387,7 @@ ggplot() +
 
 ## correlation
 layerCor(r_risk_norm, fun="cor")$correlation %>% 
-  round(., 2)
+  knitr::kable(digits = 2, caption = "Pearson's correlations")
 
 rm(r_risk_norm)
 ```
@@ -551,7 +551,7 @@ ggplot() +
 
 
 layerCor(r_risk_cov_hab, fun="cor")$correlation %>% 
-  round(., 2)
+  knitr::kable(digits = 2, caption = "Pearson's correlations")
 
 ```
 
