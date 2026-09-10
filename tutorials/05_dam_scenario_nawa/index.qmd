@@ -18,10 +18,13 @@ library(tidyverse)
 library(terra)
 library(sf)
 library(tidyterra)
+library(patchwork)
 
 theme_set(theme_bw(base_size = 9))
 theme_update(strip.background = element_rect(fill = "white"))
 nice_titles <- as_labeller(function(x) {str_to_sentence(str_replace_all(x, "_", " "))})
+
+fp <- "G:/My Drive/De Leo Lab/projects/InVEST_schisto/InVEST_scenario_data/CIV/Bas-Sassandra/"
 ```
 
 ## Background  
@@ -73,16 +76,6 @@ r_temp_wet <- rast(fl[which(str_detect(fl, "waterTemp_wet"))])
 # r_water <- rast(fl[which(str_detect(fl, "water_mask"))])
 r_pop <- rast(fl[which(str_detect(fl, "worldpop"))])
 
-## temporary fix to water
-# r_water_new <- ifel(r_water == 0, NaN, 1)
-# sources(r_water)
-# writeRaster(r_water_new[[1]], "G:/My Drive/GEEexports/water_mask_binary_CIV_Bas-Sassandra_2015.tif", overwrite=T)
-# writeRaster(r_water_new[[2]], "G:/My Drive/GEEexports/water_mask_binary_CIV_Bas-Sassandra_2017.tif", overwrite=T)
-# writeRaster(r_water_new[[3]], "G:/My Drive/GEEexports/water_mask_binary_CIV_Bas-Sassandra_2019.tif", overwrite=T)
-# writeRaster(r_water_new[[4]], "G:/My Drive/GEEexports/water_mask_binary_CIV_Bas-Sassandra_2021.tif", overwrite=T)
-# writeRaster(r_water_new[[5]], "G:/My Drive/GEEexports/water_mask_binary_CIV_Bas-Sassandra_2023.tif", overwrite=T)
-# writeRaster(r_water_new[[6]], "G:/My Drive/GEEexports/water_mask_binary_CIV_Bas-Sassandra_2025.tif", overwrite=T)
-
 r_water <- rast(fl[which(str_detect(fl, "water_mask_binary"))])
 ```
 
@@ -90,7 +83,11 @@ r_water <- rast(fl[which(str_detect(fl, "water_mask_binary"))])
 ggplot() +
   tidyterra::geom_spatvector(data=region_aoi) +
   tidyterra::geom_spatvector(data=dam_buffer) +
-  tidyterra::geom_spatvector(data=dam_locs) 
+  tidyterra::geom_spatvector(data=dam_locs) +
+  tidyterra::geom_spatvector_text(data=dam_locs, aes(label=name),
+                                  hjust=-0.1) +
+  ggspatial::annotation_scale() +
+  labs(title = "Region: Bas Sassandra", x=NULL, y=NULL)
 ```
 
 ```{r damarea}
@@ -102,7 +99,7 @@ dam_buffer_new <- as.polygons(ext(crop(r_water[[1]], dam_buffer)))
 crs(dam_buffer_new) <- crs(r_water)
 ## crop and save the input layers so invest runs faster
 cropNsave <- function(r, aoi_buffer = dam_buffer_new, yrs = r_years, 
-                      folder = "G:/My Drive/De Leo Lab/projects/InVEST_schisto/CIV/Bas-Sassandra/cropped_input/cropped_"){
+                      folder = "G:/My Drive/De Leo Lab/projects/InVEST_schisto/InVEST_scenario_data/CIV/Bas-Sassandra/cropped_input/cropped_"){
   rr <- crop(r, aoi_buffer)
   names(rr) <- paste(names(rr), yrs, sep="_")
   writeRaster(rr, paste0(folder, names(rr), ".tif"), overwrite=T)
@@ -121,14 +118,14 @@ cropNsave(r_temp_wet)
 names(r_pop)
 cropNsave(r_pop, yrs=r_years[1:3])
 
-writeVector(dam_buffer_new, "G:/My Drive/De Leo Lab/projects/InVEST_schisto/CIV/Bas-Sassandra/cropped_input/cropped_aoi.shp",
+writeVector(dam_buffer_new, "G:/My Drive/De Leo Lab/projects/InVEST_schisto/InVEST_scenario_data/CIV/Bas-Sassandra/cropped_input/cropped_aoi.shp",
             overwrite=T)
 ```
 
 ```{r subaoi}
 ## use the small area
 ## full regional AOI
-fl <- list.files("G:/My Drive/De Leo Lab/projects/InVEST_schisto/CIV/Bas-Sassandra/cropped_input/", full.names = T)
+fl <- list.files(paste0(fp, "cropped_input/"), full.names = T)
 
 aoi <- vect(fl[which(str_detect(fl, "shp"))])
 r_ndvi_dry <- rast(fl[which(str_detect(fl, "NDVI_dry"))])
@@ -199,29 +196,30 @@ ggplot()+
   geom_spatraster(data=r_pop) +
   # geom_spatvector(data=aoi, fill="transparent") +
   geom_spatvector(data=dam_locs, col="black") +
-  scale_fill_continuous(palette = "Blues")+
+  # scale_fill_continuous(palette = "Blues")+
+  scale_fill_grass_c(palette = "bcyr") +
   facet_wrap(~lyr, labeller = nice_titles)
 ```
 
 ### Summary  
 ```{r covsummary}
-tmp <- cbind(
+input_summary <- cbind(
   global(r_water == 1, "sum", na.rm = TRUE),
   global(r_ndvi_dry, "mean", na.rm=TRUE),
   global(r_ndvi_wet, "mean", na.rm=TRUE),
   global(r_temp_dry, "mean", na.rm=TRUE),
   global(r_temp_wet, "mean", na.rm=TRUE)
 )
-tmp$sum1 <- c(global(r_pop, "sum", na.rm=TRUE)$sum, NA, NA, NA)
-colnames(tmp) <- str_replace_all(paste(colnames(tmp), r_names), "_", " ")
-rownames(tmp) <- r_years
+input_summary$sum1 <- c(global(r_pop, "sum", na.rm=TRUE)$sum, NA, NA, NA)
+colnames(input_summary) <- str_replace_all(paste(colnames(input_summary), r_names), "_", " ")
+rownames(input_summary) <- r_years
 
-tmp %>% 
+input_summary %>% 
   mutate(across(everything(), ~round(.x, 2))) %>%
   rownames_to_column("year") %>% 
   DT::datatable()
 
-tmp %>% 
+input_summary %>% 
     rownames_to_column("year") %>% 
     mutate(year = as.integer(year)) %>%
     pivot_longer(-year, names_to = "metric", values_to = "value") %>% 
@@ -239,7 +237,7 @@ tmp %>%
 
 ## Risk assessments
 ```{r riskdat}
-fl <- list.files("G:/My Drive/De Leo Lab/projects/InVEST_schisto/CIV/Bas-Sassandra/cropped_output/", full.names = T)
+fl <- list.files(paste0(fp, "cropped_output/"), full.names = T)
 fl <- fl[which(str_detect(fl, "tif"))]
 fl <- fl[-which(str_detect(fl, "unmasked"))]
 
@@ -249,16 +247,16 @@ r_suit <- rast(fl[which(str_detect(fl, "suit"))])
 
 ### Risk  
 
-The InVEST model outputs various risk estimates:  
+The InVEST model outputs:  
 
 * **convolved_hab_risk**  
 * normalized_convolved_risk  
 * risk_to_pop_abs  
-* **risk_to_pop_count_abs**  
-* risk_to_pop_count_rel  
+* risk_to_pop_count_abs
+* **risk_to_pop_count_rel**  
 * risk_to_pop_rel  
 
-For the purposes of comparing between scenarios (e.g., our timepoints) the most useful outputs for comparing between scenarios are convoluted habitat risk and risk to population count absolute, as the normalized risk is normalized to within the scenario (bounded [0,1]) and [population's are relative to the total???]{style="color: red;"}, which isn't necessary since only the 2015 'baseline' populaton data was used in the model. 
+For the purposes of comparing between scenarios (e.g., our timepoints) the most useful outputs for comparing between scenarios are convoluted habitat risk and risk to population count relative, as the normalized risk is normalized to within the scenario (bounded [0,1]) and risk to pop count rel is the only prediction at population-scale. 
 
 ::: {.panel-tabset}
 ```{r risk}
@@ -288,7 +286,9 @@ for (i in 1:length(nms)) {
   print(
     ggplot() +
       geom_spatraster(data=rr)+
-      facet_wrap(~lyr, labeller = nice_titles)
+      facet_wrap(~lyr, labeller = nice_titles)+
+      scale_x_continuous(n.breaks = 4) +
+      scale_y_continuous(n.break = 4)
   )
   ## mean values and sum of entire area
   g_res <- global(rr, c("sum", "mean", "sd"), na.rm = TRUE) %>% 
@@ -311,7 +311,8 @@ g_res %>%
   mutate(across(sum:sd, ~round(.x, 2))) %>% 
   DT::datatable(filter="top")
 
-g_res %>% 
+p1 <- g_res %>% 
+  filter(var %in% c("convolved_hab_risk", "risk_to_pop_count_abs")) %>%  ## just the layers that need interpretation
   ggplot(aes(x= year, y=mean))+
   geom_line() + 
   geom_point() +
@@ -319,13 +320,16 @@ g_res %>%
   facet_wrap(~var, scales="free_y", labeller = nice_titles) +
   labs(y= "Mean of AOI")
 
-g_res %>% 
+p2 <- g_res %>% 
+  filter(var %in% c("convolved_hab_risk", "risk_to_pop_count_abs")) %>%  ## just the layers that need interpretation
   ggplot(aes(x=year, y=sum))+
   geom_line() + 
   geom_point() +
   scale_x_continuous(breaks = as.numeric(r_years)) +
   facet_wrap(~var, scales="free_y", labeller = nice_titles) +
   labs(y = "Sum of AOI") 
+
+p1 / p2 + plot_layout(guides = "collect")
 ```
 
 ### Suitability
@@ -352,7 +356,9 @@ for (i in 1:length(nms)) {
   print(
     ggplot() +
       geom_spatraster(data=rr)+
-      facet_wrap(~lyr, labeller = nice_titles)
+      facet_wrap(~lyr, labeller = nice_titles) +
+      scale_x_continuous(n.breaks = 4) +
+      scale_y_continuous(n.break = 4)
   )
   ## mean values and sum of entire area
   s_res <- global(rr, c("sum", "mean", "sd"), na.rm = TRUE) %>% 
@@ -424,6 +430,122 @@ gs_res %>%
     ggplot(aes(x=year, y=mean)) + 
     geom_line() + geom_point() +
   facet_wrap(~var, scales="free_y", labeller = nice_titles)
+```
+
+## Delve into population  
+```{r poptracking}
+## plot all the pop inputs/intermed/outputs in order
+p1 <- ggplot()+
+  geom_spatraster(data=r_pop$population_2015) +
+  scale_fill_grass_c(palette = "bcyr") +
+  labs(title = "Input", 
+       subtitle = paste("resolution =", res(r_pop)[[1]]))
+
+p2 <- ggplot()+
+  geom_spatraster(data=r_suit$population_suit_sqkm_2015) +
+  geom_spatvector(data=dam_locs, col="black") +
+  scale_fill_grass_c(palette = "bcyr") +
+  labs(title = "Suitability sqkm", 
+       subtitle = paste("resolution =", res(r_suit)[[1]]))
+
+p3 <- ggplot()+
+  geom_spatraster(data=r_suit$population_suitability_2015) +
+  scale_fill_grass_c(palette = "bcyr") +
+  labs(title = "Suitability", 
+       subtitle = paste("resolution =", res(r_suit)[[1]]))
+
+p4 <- ggplot()+
+  geom_spatraster(data=r_risk$risk_to_pop_abs_2015) +
+  scale_fill_hypso_c(palette = "arctic") +
+  labs(title = "Absolute", 
+       subtitle = paste("resolution =", res(r_risk)[[1]]))
+
+p5 <- ggplot()+
+  geom_spatraster(data=r_risk$risk_to_pop_count_abs_2015) +
+  scale_fill_hypso_c(palette = "arctic") +
+  labs(title = "Count absolute", 
+       subtitle = paste("resolution =", res(r_risk)[[1]]))
+
+p6 <- ggplot()+
+  geom_spatraster(data=r_risk$risk_to_pop_rel_2015) +
+  scale_fill_hypso_c(palette = "nordisk-familjebok") +
+  labs(title = "Relative", 
+       subtitle = paste("resolution =", res(r_risk)[[1]]))
+
+p7 <- ggplot()+
+  geom_spatraster(data=r_risk$risk_to_pop_count_rel_2015) +
+  scale_fill_hypso_c(palette = "nordisk-familjebok") +
+  labs(title = "Count relative", 
+       subtitle = paste("resolution =", res(r_risk)[[1]]))
+
+(p1 + p2 + p3) / (p4 + p5) / (p6 + p7) + 
+  plot_annotation(tag_levels = 1) &
+  theme_void(base_size = 8) & theme(legend.position = "none")
+
+rm(p1, p2, p3, p4, p5, p6, p7)
+
+## check ha to km2
+tmp <- r_suit$population_suit_sqkm_2015 /100
+tmp <- aggregate(tmp, fact = 10)
+plot(tmp)
+
+## check risk to pop count abs if rescale
+tmp <- r_risk[[which(str_detect(names(r_risk), "risk_to_pop_count_abs"))]]
+tmp <- tmp /100
+tmp <- aggregate(tmp, fact = 10)
+plot(tmp)
+risk_to_pop_count_abs_rescaled = global(tmp, fun = c("sum", "mean", "sd"), na.rm=T) %>% 
+  rownames_to_column("var") %>% 
+  mutate(var = paste0(var, "_rescaled"))
+
+risk_to_pop_count_abs_rescaled %>% 
+  mutate(prop_pos = sum/round(input_summary$`sum1 worldpop`[1]))
+## extents change slightly so this doesn't work
+# tmp$population_suit_sqkm_2015 == r_pop$population_2015
+# par(mfrow = c(1, 2))
+# plot(tmp); plot(r_pop$population_2015)
+
+## multiply layers??
+
+## multiply summary tables following workflow
+tmp <- rbind(
+  data.frame(var= "input_population_2015", 
+             sum = input_summary$`sum1 worldpop`[1],
+             mean = NA, sd = NA),
+  s_res %>% filter(year == 2015) %>% select(-year),
+  g_res %>% filter(year == 2015) %>% select(-year),
+  risk_to_pop_count_abs_rescaled 
+) %>% 
+  pivot_longer(-var, names_to = "metric", values_to = "value") %>% 
+  pivot_wider(names_from = "var", values_from = "value") 
+
+## pop suit * convolved risk abs = pop risk abs
+tmp %>% 
+  # select(metric, population_suitability, convolved_hab_risk, risk_to_pop_abs) %>% 
+  mutate(check_pop_abs = population_suitability * convolved_hab_risk) %>% 
+  select(metric, risk_to_pop_abs, check_pop_abs)
+
+## abs risk to pop * pop count = pop risk abs count
+tmp %>% 
+  # select(metric, input_population_2015, population_suit_sqkm, risk_to_pop_count_abs_2015_rescaled,
+  #        risk_to_pop_abs) %>% 
+  mutate(check_pop_abs_count_km2 = population_suit_sqkm * risk_to_pop_abs,
+         check_pop_abs_count_input = input_population_2015 * risk_to_pop_abs) %>% 
+  select(metric, risk_to_pop_count_abs_2015_rescaled, risk_to_pop_count_abs,
+         check_pop_abs_count_km2, check_pop_abs_count_input)
+
+## pop size risk * convolved risk = normalized relative risk to pop
+tmp %>% 
+  # select(metric, population_suitability, convolved_hab_risk, risk_to_pop_rel) %>% 
+  mutate(check_pop_rel = population_suitability * convolved_hab_risk) %>% 
+  select(metric, risk_to_pop_rel, check_pop_rel)
+
+## normalized/relative risk to pop * pop count = normalized/relative risk to pop count
+tmp %>% 
+  # select(metric, risk_to_pop_rel, input_population_2015, population_suit_sqkm) %>% 
+  mutate(check_pop_rel_count_km2 = population_suit_sqkm * risk_to_pop_rel,
+         check_pop_rel_count_input = input_population_2015 * risk_to_pop_rel) %>% 
+  select(metric, risk_to_pop_count_rel, check_pop_rel_count_km2, check_pop_rel_count_km2)
 ```
 
 ## Ground truth  

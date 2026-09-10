@@ -1,9 +1,663 @@
 ---
-title: "Untitled"
+title: "Pemba elimination scenario"
+author: "Kayla Kauffman"
+date: 06-25-2026 #important if sorting by date in tutorials
+categories: [InVEST, Scenario] #rough ideas if want tags
+image: invest-logo-registeredtm_202305_150dpi_0.png #must be in this folder
+execute: 
+    message: false
+    warning: false
+    echo: false
+draft: false #true until ready to post
 ---
 
-```{r}
+```{r setup}
+#| include: false
+
 library(tidyverse)
-ggplot(data=mtcars, aes(x=mpg, y=hp)) +geom_point(col="red") +geom_line()
+library(terra)
+library(sf)
+library(tidyterra)
+
+theme_set(theme_bw(base_size = 9))
+theme_update(strip.background = element_rect(fill = "white"))
+nice_titles <- as_labeller(function(x) {str_wrap(str_replace_all(x, "_", " "),10)})
+
+binomial_smooth <- function(...) {
+  geom_smooth(method = "glm", method.args = list(family = "binomial"), ...)
+}
 ```
 
+## Background  
+
+Pemba Island, Tanzania is nearing elimination of schistosomiasis. Here we use risk maps derived from 2012, 2019, and 2025 to compare risk to human-case data. 
+
+## Input layers  
+
+```{r}
+## files in folder
+fl <- list.files("G:/My Drive/De Leo Lab/projects/InVEST_schisto/InVEST_scenario_data/zanzibar/GEEexports", full.names = T)
+
+## load files
+region_aoi <- vect(fl[which(str_detect(fl, "shp"))])
+r_ndvi_dry <- rast(fl[which(str_detect(fl, "NDVI_dry"))])
+r_ndvi_wet <- rast(fl[which(str_detect(fl, "NDVI_wet"))])
+r_temp_dry <- rast(fl[which(str_detect(fl, "waterTemp_dry"))])
+r_temp_wet <- rast(fl[which(str_detect(fl, "waterTemp_wet"))])
+r_temp_dry_BT <- rast(fl[which(str_detect(fl, "waterTemp_BT_dry"))])
+r_temp_wet_BT <- rast(fl[which(str_detect(fl, "waterTemp_BT_wet"))])
+r_water <- rast(fl[which(str_detect(fl, "water_mask"))])
+r_pop <- rast(fl[which(str_detect(fl, "worldpop"))])
+
+## give layers names based on data/year
+rename_layers <- function(rstack){
+  nms <- names(rstack)
+  srcs <- sources(rstack)
+  
+  srcs <- str_extract(srcs, "[^/]+$")
+  srcs <- str_remove(srcs, ".tif")
+  srcs <- str_remove(srcs, "habsuit_")
+  
+  names(rstack) <- srcs
+  
+  rstack
+}
+
+r_ndvi_dry <- rename_layers(r_ndvi_dry)
+r_ndvi_wet <- rename_layers(r_ndvi_wet)
+r_temp_dry <- rename_layers(r_temp_dry)
+r_temp_wet <- rename_layers(r_temp_wet)
+r_temp_dry_BT <- rename_layers(r_temp_dry_BT)
+r_temp_wet_BT <- rename_layers(r_temp_wet_BT)
+r_water <- rename_layers(r_water)
+r_pop <- rename_layers(r_pop)
+
+## mask areas outside of aoi
+r_ndvi_dry <- mask(r_ndvi_dry, region_aoi)
+r_ndvi_wet <- mask(r_ndvi_wet, region_aoi)
+r_temp_dry <- mask(r_temp_dry, region_aoi)
+r_temp_wet <- mask(r_temp_wet, region_aoi)
+r_temp_dry_BT <- mask(r_temp_dry_BT, region_aoi)
+r_temp_wet_BT <- mask(r_temp_wet_BT, region_aoi)
+r_water <- mask(r_water, region_aoi)
+r_pop <- mask(r_pop, region_aoi)
+
+## water 0,1
+r_water[r_water>0] = 1
+r_water = as.factor(r_water)
+```
+
+```{r riskdat}
+fl <- list.files("G:/My Drive/De Leo Lab/projects/InVEST_schisto/InVEST_scenario_data/zanzibar/InVEST_layers", full.names = T)
+fl <- fl[which(str_detect(fl, "tif"))]
+fl <- fl[-which(str_detect(fl, "unmasked"))]
+
+r_risk <- rast(fl[which(str_detect(fl, "risk"))])
+r_suit <- rast(fl[which(str_detect(fl, "suit"))])
+```
+
+### AOI  
+```{r}
+ggplot() +
+  geom_sf(data=region_aoi) +
+  scale_x_continuous(n.breaks = 4)
+
+
+```
+The total area of the Pemba AOI is `r sum(expanse(region_aoi, unit="km"))` km^2. The wikipedia pages say 988 km^2
+
+### Water presence  
+
+```{r}
+## maps
+ggplot()+
+  geom_spatraster(data=r_water) +
+  facet_wrap(~lyr, labeller = nice_titles) +
+  theme_void()+
+  scale_fill_manual(values = c(`0` = "grey", `1` = "navy"), na.value = "transparent") +
+  labs(fill="Water")
+
+## annual amount of water
+tmp <- global(r_water, fun = "sum", na.rm = TRUE) %>% 
+  mutate(diff_yi_y1 = sum - first(sum),
+         diff_yi_yim1 = sum - lag(sum),
+         across(sum:diff_yi_yim1, ~.* 1e-5)) %>% ## convert 10m2 to km2
+  ## name a year col instead of layer name
+  rownames_to_column(var= "lyr_name") %>% 
+  mutate(year = as.integer(str_sub(lyr_name, -4, -1))) 
+
+### plot annual changes
+tmp %>% 
+  ggplot(aes(x = year, y=sum)) +
+  geom_point() +
+  geom_line() +
+  labs(y=expression("Water area "~(km^2))) +
+  scale_x_continuous(breaks = tmp$year)
+
+## summary table of annual changes
+tmp %>% 
+  select(year, sum, diff_yi_y1, diff_yi_yim1) %>% 
+  knitr::kable(digits = 2, col.names = c("Year", "Water area", 
+                                         "$y_i - y_1$",
+                                         "$y_i - y_{i-1}$"),
+               escape = FALSE,
+               caption = "units = $km^2$")
+
+## summary map of where changes occur
+ggplot()+
+  geom_spatraster(data=app(r_water, fun = "sum", na.rm = TRUE)) +
+  theme_void() +
+  labs(fill="N years with water")
+
+## summary table of where changes occur
+table(values(app(r_water, fun = "sum", na.rm = TRUE))) %>% 
+  knitr::kable(col.names = c("N years with water", "Freq"))
+```
+
+Distance to water
+```{r}
+plot(mask(distance(r_water$water_mask_TZA_Pemba_2019, target=1), region_aoi))
+hist(values(mask(distance(r_water$water_mask_TZA_Pemba_2019, target=1), region_aoi)))
+
+tmp <- values(mask(distance(r_water, target=1), region_aoi), na.rm=T)
+tmp %>% 
+  as.data.frame() %>% 
+  pivot_longer(everything(), names_to = "layer", values_to = "value") %>% 
+  ggplot(aes(x=value, col=layer)) +
+  geom_density()
+
+paste("max water dist =", round(max(tmp)))
+```
+
+
+### Population 
+```{r}
+## map
+ggplot()+
+  geom_spatraster(data=r_pop) +
+  facet_wrap(~lyr, labeller = nice_titles) +
+  theme_void()+
+  scale_fill_whitebox_c(palette = "deep")+
+  labs(fill="WorldPop")
+
+## annual population
+tmp <- global(r_pop, fun = "sum", na.rm = TRUE) %>% 
+  mutate(diff_yi_y1 = sum - first(sum),
+         diff_yi_yim1 = sum - lag(sum)) %>% 
+  ## name a year col instead of layer name
+  rownames_to_column(var= "lyr_name") %>% 
+  mutate(year = as.integer(str_sub(lyr_name, -4, -1)))
+
+### plot annual changes
+tmp %>% 
+  ggplot(aes(x = year, y=sum)) +
+  geom_point() +
+  geom_line() +
+  labs(y="Population") +
+  scale_x_continuous(breaks = tmp$year)
+
+## summary table of annual changes
+tmp %>% 
+  select(year, sum, diff_yi_y1, diff_yi_yim1) %>% 
+  knitr::kable(digits = 2, col.names = c("Year", "Population", 
+                                         "$y_i - y_1$",
+                                         "$y_i - y_{i-1}$"),
+               escape = FALSE)
+```
+
+The wikipedia page says the 2022 Census = 543,441
+Compare that to the population suitability kmsq to ensure conversion in InVEST works. Using the two temp layers to ensure consistent across inputs.
+```{r}
+rbind(global(r_suit$population_suit_sqkm_2019_BTtemp, fun="sum", na.rm=TRUE),
+      global(r_suit$population_suitability_2019_BTtemp, fun="sum", na.rm=TRUE),
+      global(r_suit$population_suit_sqkm_2019_L8temp, fun="sum", na.rm=TRUE),
+      global(r_suit$population_suitability_2019_L8temp, fun="sum", na.rm=TRUE))
+```
+
+And the risk to pop estimates (rounded)
+```{r}
+rbind(
+  global(r_risk$risk_to_pop_abs_2019_BTtemp, fun="sum", na.rm=TRUE),
+  global(r_risk$risk_to_pop_count_abs_2019_BTtemp, fun="sum", na.rm=TRUE),
+  global(r_risk$risk_to_pop_count_rel_2019_BTtemp, fun="sum", na.rm=TRUE),
+  global(r_risk$risk_to_pop_rel_2019_BTtemp, fun="sum", na.rm=TRUE)
+) %>% 
+  round(.)
+
+```
+
+```{r}
+## density plot by year
+ggplot() +
+  geom_density(aes(x = values(r_pop$worldpop_TZA_Pemba_2015), 
+                   col="2015")) +
+  geom_density(aes(x = values(r_pop$worldpop_TZA_Pemba_2017), 
+                   col="2017")) +
+  geom_density(aes(x = values(r_pop$worldpop_TZA_Pemba_2019), 
+                   col="2019")) +
+  scale_x_continuous(transform = "log10") +
+  labs(x=expression("Population/ha "~(log[10])),
+       col=NULL)
+```
+
+### Temperature dry  
+
+```{r}
+ggplot()+
+  geom_spatraster(data=r_temp_dry) +
+  facet_wrap(~lyr, labeller = nice_titles) +
+  theme_void() +
+  scale_fill_whitebox_c(palette = "muted", direction = -1) 
+
+ggplot()+
+  geom_spatraster(data=r_temp_dry_BT) +
+  facet_wrap(~lyr, labeller = nice_titles) +
+  theme_void() +
+  scale_fill_whitebox_c(palette = "muted", direction = -1) 
+
+## single combo plot for 2019
+ggplot()+
+  geom_spatraster(data=c(r_temp_dry$waterTemp_dry_TZA_Pemba_2019, 
+                         r_temp_dry_BT$waterTemp_BT_dry_TZA_Pemba_2019)) +
+  facet_wrap(~lyr, labeller = nice_titles) +
+  theme_void() +
+  scale_fill_whitebox_c(palette = "muted", direction = -1) 
+
+## density plot by year
+ggplot() +
+  geom_density(aes(x = values(r_temp_dry$waterTemp_dry_TZA_Pemba_2019, na.rm=T), 
+                   col="L8")) +
+  geom_density(aes(x = values(r_temp_dry_BT$waterTemp_BT_dry_TZA_Pemba_2019, na.rm=T), 
+                   col="BT")) +
+  labs(x="Temperature (C)",
+       col=NULL)
+```
+
+### Temperature wet  
+
+```{r}
+ggplot()+
+  geom_spatraster(data=r_temp_wet) +
+  facet_wrap(~lyr, labeller = nice_titles) +
+  theme_void() + 
+  scale_fill_whitebox_c(palette = "muted", direction = -1)
+
+ggplot()+
+  geom_spatraster(data=r_temp_wet_BT) +
+  facet_wrap(~lyr, labeller = nice_titles) +
+  theme_void() +
+  scale_fill_whitebox_c(palette = "muted", direction = -1) 
+
+## density plot by year
+ggplot() +
+  geom_density(aes(x = values(r_temp_wet$waterTemp_wet_TZA_Pemba_2019, na.rm=T), 
+                   col="L8")) +
+  geom_density(aes(x = values(r_temp_wet_BT$waterTemp_BT_wet_TZA_Pemba_2019, na.rm=T), 
+                   col="BT")) +
+  labs(x="Temperature (C)",
+       col=NULL)
+```
+
+### NDVI dry
+
+```{r}
+ggplot()+
+  geom_spatraster(data=r_ndvi_dry) +
+  facet_wrap(~lyr, labeller = nice_titles) +
+  theme_void() + 
+  scale_fill_whitebox_c(palette = "soft", direction = -1)
+```
+
+### NDVI wet  
+```{r}
+ggplot()+
+  geom_spatraster(data=r_ndvi_wet) +
+  facet_wrap(~lyr, labeller = nice_titles) +
+  theme_void() + 
+  scale_fill_whitebox_c(palette = "soft", direction = -1)
+```
+
+```{r}
+#| include: false
+
+rm(r_ndvi_dry, r_ndvi_wet, r_pop, r_temp_wet, r_temp_wet_BT, r_temp_dry, r_temp_dry_BT, r_water, tmp)
+```
+
+
+## Habitat risk  
+
+
+#### Convolved habitat risk
+```{r}
+## subset stack
+r_risk_cov_hab <- r_risk[[which(str_detect(names(r_risk), "convolved_hab_risk"))]] 
+
+## plot
+ggplot() +
+  geom_spatraster(data=r_risk_cov_hab) +
+  geom_spatvector(data=region_aoi, col="grey30", fill="transparent") +
+  facet_wrap(~lyr, labeller = nice_titles) +
+  theme_void() +
+  scale_fill_whitebox_c(palette = "bl_yl_rd")
+
+# ##differences in plots with mod and unmod (0 vs NaN water)
+# plot(r_risk_cov_hab$convolved_hab_risk_2019_L8temp_unmodifiedWater - r_risk_cov_hab$convolved_hab_risk_2019_L8temp)
+# ## plots on independent scales
+# par(mfrow=c(2,2))
+# plot(r_risk_cov_hab$convolved_hab_risk_2019_BTtemp, main="BT temp")
+# plot(r_risk_cov_hab$convolved_hab_risk_2019_L8temp, main="L8 temp")
+# plot(r_risk_cov_hab$convolved_hab_risk_2019_L8temp_unmodifiedWater, main="Unmod. Water")
+# plot(r_risk_cov_hab$convolved_hab_risk_2019_NOtemp, main="No temp")
+# par(mfrow=c(1,1))
+
+## correlations
+layerCor(r_risk_cov_hab, fun="cor")$correlation %>% 
+  round(., 2)
+
+# rm(r_risk_cov_hab)
+```
+
+Check the water temp suitability layers
+```{r}
+## subset stack
+r_suit_water <- r_suit[[which(str_detect(names(r_suit), "water_temp_suit_wet_2019"))]]
+
+## plot
+ggplot() +
+  geom_spatraster(data=r_suit_water) +
+  geom_spatvector(data=region_aoi, col="grey30", fill="transparent") +
+  facet_wrap(~lyr, labeller = nice_titles) +
+  theme_void() +
+  scale_fill_whitebox_c(palette = "bl_yl_rd")
+
+```
+
+#### Normalized relative convolved risk  
+
+The normalization likely needs to change to relative to optimal habitat suitability rather than max pixel in image. 
+```{r}
+r_risk_norm <- r_risk[[which(str_detect(names(r_risk), "normalized"))]]
+
+ggplot() +
+  geom_spatraster(data=r_risk_norm) +
+  geom_spatvector(data=region_aoi, col="grey30", fill="transparent") +
+  facet_wrap(~lyr, labeller = nice_titles) +
+  theme_void() +
+  scale_fill_whitebox_c(palette = "bl_yl_rd")
+
+## correlation
+layerCor(r_risk_norm, fun="cor")$correlation %>% 
+  round(., 2)
+
+rm(r_risk_norm)
+```
+
+### Compare convolved hab risk to snail data  
+```{r}
+fp_z <- "G:/Shared drives/Belmont-CEH2/Data/Zanzibar/"
+
+zest_snails <- read.csv(paste0(fp_z, "ZEST/ZEST_SNAIL_DATA_MAIN_v23_2021-01-11-v1_Giulio_(2.7.2026).csv"))
+schistobreak_snails <- read.csv(paste0(fp_z, "SchistoBreak/SchistoBreak_Snail_WB_Intv_14.01.2026.csv"))
+
+paste("missing coords for",
+      zest_snails %>% filter(island == "Pemba", is.na(longi_dd) | is.na(lati_dd)) %>% nrow(),
+      "observations in ZEST snails")
+
+paste("missing coords for",
+      schistobreak_snails %>% filter(is.na(longitude_gps) | is.na(latitude_gps)) %>% nrow(),
+      "observations in SchistoBreak snails")
+
+## make spatial
+zest_snails <- zest_snails %>% 
+  filter(island == "Pemba", !is.na(longi_dd), !is.na(lati_dd)) %>% 
+  st_as_sf(coords = c("longi_dd", "lati_dd"), crs=4326) %>% 
+  st_transform(crs=crs(r_risk))
+
+schistobreak_snails <- schistobreak_snails %>% 
+  st_as_sf(coords = c("longitude_gps", "latitude_gps"), crs=4326) %>% 
+  st_transform(crs=crs(r_risk))
+
+## bind to risk
+tmp <- extract(r_risk_cov_hab, zest_snails, ID=F)
+zest_snails <- cbind(zest_snails, tmp)
+
+tmp <- extract(r_risk_cov_hab, schistobreak_snails, ID=F)
+schistobreak_snails <- cbind(schistobreak_snails, tmp)
+```
+
+### ZEST snails
+```{r}
+## ZEST analysis
+tmp <- zest_snails %>% 
+  st_drop_geometry() %>% 
+  select(year, no_collected, bglob, infsnails_no, starts_with("convolved")) %>% 
+  select(-convolved_hab_risk_2019_L8temp_unmodifiedWater) %>% 
+  mutate(year = as.factor(year),
+         no_collected_lp = log(no_collected + 1)) %>% 
+  pivot_longer(starts_with("convolved"), names_to = "layer", values_to = "values") %>% 
+  mutate(values_z = scale(values),
+         infsnail_01 = ifelse(infsnails_no > 0, 1, infsnails_no))
+
+## plot ZEST -- snail presence
+tmp %>% 
+  mutate(layer = str_remove_all(layer, "convolved_hab_risk_2019_")) %>% 
+  ggplot(aes(x=values_z, y=bglob, col=layer)) +
+  geom_point(alpha=0.8, pch="|") +
+  # geom_smooth(se=F, method = "glm", method.args = list(family = "binomial")) +
+  binomial_smooth(se=F) +
+  facet_wrap(~year) +
+  labs(x= "Convolved habitat risk 2019 (scaled and centered)", y = "B. globosus found",
+       title = "Bg found")
+
+## model ZEST -- snail presence
+print("B. globosus present")
+mod_BT <- MASS::glm.nb(bglob ~ values_z*factor(year), data=tmp %>% 
+                        filter(year != 2017, layer == "convolved_hab_risk_2019_BTtemp"))
+mod_L8 <- MASS::glm.nb(bglob ~ values_z*factor(year), data=tmp %>% 
+                        filter(year != 2017, layer == "convolved_hab_risk_2019_L8temp"))
+mod_NO <- MASS::glm.nb(bglob ~ values_z*factor(year), data=tmp %>% 
+                        filter(year != 2017, layer == "convolved_hab_risk_2019_NOtemp"))
+# DHARMa::simulateResiduals(mod_BT, n=999, plot=T)
+AIC(mod_BT, mod_L8, mod_NO)
+
+## plot ZEST -- snail infection (only ~50 tested)
+tmp %>% 
+  mutate(layer = str_remove_all(layer, "convolved_hab_risk_2019_")) %>% 
+  filter(!is.na(infsnail_01)) %>% 
+  ggplot(aes(x=values_z, y=infsnail_01, col=layer)) +
+  geom_point(alpha=0.2, pch="|") +
+  # geom_smooth(se=F, method = "glm", method.args = list(family = "binomial")) +
+  binomial_smooth(se=F) +
+  # facet_wrap(~year) +
+  labs(x= "Convolved habitat risk 2019 (scaled and centered)", y = "Infected snails found",
+       title = "Bg infected (very few tested)")
+```
+
+### SchistoBreak Snails
+```{r}
+## SchistoBreak analysis
+tmp <- schistobreak_snails %>% 
+  st_drop_geometry() %>% 
+  mutate(year = as.integer(str_sub(date, -4, -1))) %>% 
+  select(year, bg, bgpos, starts_with("convolved")) %>% 
+  select(-convolved_hab_risk_2019_L8temp_unmodifiedWater) %>% 
+  mutate(year = as.factor(year),
+         no_collected_lp = log(bg + 1)) %>% 
+  pivot_longer(starts_with("convolved"), names_to = "layer", values_to = "values") %>% 
+  mutate(values_z = scale(values))
+
+## plot SB -- count of snails
+print("B. globosus present")
+tmp %>% 
+  mutate(layer = str_remove_all(layer, "convolved_hab_risk_2019_")) %>% 
+  ggplot(aes(x=values_z, y=no_collected_lp, col=layer)) +
+  geom_point(alpha=0.8, pch="|") +
+  geom_smooth(se=F, method = "lm") +
+  # binomial_smooth(se=F) +
+  facet_wrap(~year) +
+  labs(x= "Convolved habitat risk 2019 (scaled and centered)", y = "B. globosus N found (ln+1)",
+       title = "Bg found")
+
+## model SB
+mod_BT <- MASS::glm.nb(bg ~ values_z*factor(year), data=tmp %>% 
+                        filter(year != 2024, layer == "convolved_hab_risk_2019_BTtemp"))
+mod_L8 <- MASS::glm.nb(bg ~ values_z*factor(year), data=tmp %>% 
+                        filter(year != 2024, layer == "convolved_hab_risk_2019_L8temp"))
+mod_NO <- MASS::glm.nb(bg ~ values_z*factor(year), data=tmp %>% 
+                        filter(year != 2024, layer == "convolved_hab_risk_2019_NOtemp"))
+# DHARMa::simulateResiduals(mod_BT, n=999, plot=T)
+AIC(mod_BT, mod_L8, mod_NO)
+
+## plot SB -- infected snails
+print("B. globosus infected")
+tmp %>% 
+  filter(!is.na(bgpos)) %>% 
+  mutate(layer = str_remove_all(layer, "convolved_hab_risk_2019_")) %>% 
+  ggplot(aes(x=values_z, y=bgpos, col=layer)) +
+  geom_point(alpha=0.8, pch="|") +
+  # geom_smooth(se=F, method = "lm") +
+  binomial_smooth(se=F) +
+  facet_wrap(~year) +
+  labs(x= "Convolved habitat risk 2019 (scaled and centered)", y = "B. globosus N infected",
+       title = "Bg infected")
+
+## model SB
+mod_BT <- glm(bgpos ~ values_z*factor(year), family="binomial", data=tmp %>% 
+                        filter(year != 2024, layer == "convolved_hab_risk_2019_BTtemp",
+                               !is.na(bgpos)))
+mod_L8 <- glm(bgpos ~ values_z*factor(year), family="binomial", data=tmp %>% 
+                        filter(year != 2024, layer == "convolved_hab_risk_2019_L8temp",
+                               !is.na(bgpos)))
+mod_NO <- glm(bgpos ~ values_z*factor(year), family="binomial", data=tmp %>% 
+                        filter(year != 2024, layer == "convolved_hab_risk_2019_NOtemp",
+                               !is.na(bgpos)))
+# DHARMa::simulateResiduals(mod_BT, n=999, plot=T)
+AIC(mod_BT, mod_L8, mod_NO)
+```
+
+
+## Population at risk 
+
+### Normalized relative risk to population count (how many people are at risk)
+```{r}
+r_risk_norm <- r_risk[[which(str_detect(names(r_risk), "risk_to_pop_count_rel"))]]
+
+ggplot() +
+  geom_spatraster(data=r_risk_norm) +
+  geom_spatvector(data=region_aoi, col="grey30", fill="transparent") +
+  facet_wrap(~lyr, labeller = nice_titles) +
+  theme_void() +
+  scale_fill_whitebox_c(palette = "bl_yl_rd")
+
+
+layerCor(r_risk_cov_hab, fun="cor")$correlation %>% 
+  round(., 2)
+
+```
+
+
+### Compare to prevalence data (schools only) 
+```{r}
+# zest_adults <- read.csv(paste0(fp_z, "ZEST/Merged_datasets_Adults_Unguja_Pemba_2012-2021_v28_FINAL_plus_MDA_(27.04.2021)_SK-v1_Giulio_(1.7.2026).csv"))
+zest_schools <- read.csv(paste0(fp_z, "ZEST/Merged_datasets_Schools_Unguja_Pemba_2012-2021_v36_FINAL_plus_MDA_GPS_short_(27.10.2021)_SK-v1_Giulio_(1.7.2026).csv"))
+
+# sb_comm <- read.csv(paste0(fp_z, "SchistoBreak/SchistoBreak_Community_2021-2024_v1_Giulio_(3.9.2026).csv"))
+# sb_schools <- read.csv(paste0(fp_z, "SchistoBreak/SchistoBreak_School_2020-2024_v1_Giulio_(3.9.2026).csv"))
+
+## schools are revisted, but don't have GPS each time
+zsloc <- zest_schools %>% 
+  filter(isl == "Pemba", !is.na(lat), !is.na(longitude)) %>% ## remove one school w/o coords
+  select(school, shehia_of_school, district, lat, longitude) %>% 
+  distinct()
+
+zest_schools <- zest_schools %>% 
+  filter(isl == "Pemba") %>% 
+  group_by(school, shehia_of_school, district, year) %>% 
+  summarise(n = n(), 
+            n_tested = n - (sum(is.na(shpos))), ## assume NA = not tested
+            shpos = sum(shpos, na.rm=T),
+            .groups ="drop") %>% 
+  left_join(zsloc) %>% 
+  # filter(!is.na(lat)) %>% filter(school == "PANDANI")
+  ## fill in the missing coordinates b/c I think its the same school
+  mutate(lat = ifelse(is.na(lat), zsloc %>% filter(school == "PANDANI") %>% pull(lat), lat),
+         longitude = ifelse(is.na(longitude), zsloc %>% filter(school == "PANDANI") %>% pull(longitude), longitude),)
+
+## TO DO SB SCHOOLS
+
+## make spatial
+zest_schools <- zest_schools %>% 
+  st_as_sf(coords = c("longitude", "lat"), crs=4326) %>% 
+  st_transform(crs=crs(r_risk))
+
+# schistobreak_snails <- schistobreak_snails %>% 
+#   st_as_sf(coords = c("longitude_gps", "latitude_gps"), crs=4326) %>% 
+#   st_transform(crs=crs(r_risk))
+
+## bind to risk
+tmp <- extract(r_risk_cov_hab, zest_schools, ID=F)
+zest_schools <- cbind(zest_schools, tmp)
+
+# tmp <- extract(r_risk_cov_hab, schistobreak_snails, ID=F)
+# schistobreak_snails <- cbind(schistobreak_snails, tmp)
+```
+
+### ZEST schools
+```{r}
+## ZEST analysis
+tmp <- zest_schools %>% 
+  st_drop_geometry() %>% 
+  select(-convolved_hab_risk_2019_L8temp_unmodifiedWater) %>% 
+  mutate(year = as.factor(year)) %>% 
+  pivot_longer(starts_with("convolved"), names_to = "layer", values_to = "values") %>% 
+  mutate(values_z = scale(values),
+         prop_pos = shpos/n_tested,
+         shpos_01 = ifelse(shpos > 0, 1, shpos))
+
+## plot ZEST -- schools BINARY
+tmp %>% 
+  mutate(layer = str_remove_all(layer, "convolved_hab_risk_2019_")) %>% 
+  ggplot(aes(x=values_z, y=shpos_01, col=year)) +
+  geom_point(alpha=0.8, pch="|") +
+  # geom_smooth(se=F, method = "glm", method.args = list(family = "binomial")) +
+  binomial_smooth(se=F) +
+  facet_wrap(~layer) +
+  scale_colour_manual(values = heat.colors(length(unique(zest_schools$year)))) +
+  labs(x= "Convolved habitat risk 2019 (scaled and centered)", y = "Sh positive",
+       title = "Sh positive - Any positives")
+
+## model ZEST -- snail presence
+# print("B. globosus present")
+# mod_BT <- MASS::glm.nb(bglob ~ values_z*factor(year), data=tmp %>% 
+#                         filter(year != 2017, layer == "convolved_hab_risk_2019_BTtemp"))
+# mod_L8 <- MASS::glm.nb(bglob ~ values_z*factor(year), data=tmp %>% 
+#                         filter(year != 2017, layer == "convolved_hab_risk_2019_L8temp"))
+# mod_NO <- MASS::glm.nb(bglob ~ values_z*factor(year), data=tmp %>% 
+#                         filter(year != 2017, layer == "convolved_hab_risk_2019_NOtemp"))
+# # DHARMa::simulateResiduals(mod_BT, n=999, plot=T)
+# AIC(mod_BT, mod_L8, mod_NO)
+
+## plot ZEST -- school 
+
+## plot ZEST -- schools % pos
+tmp %>% 
+  mutate(layer = str_remove_all(layer, "convolved_hab_risk_2019_")) %>% 
+  ggplot(aes(x=values_z, y=prop_pos, col=year)) +
+  geom_point(alpha=0.8, pch="|") +
+  geom_smooth(se=F, method = "lm") +
+  # binomial_smooth(se=F) +
+  facet_wrap(~layer) +
+  scale_colour_manual(values = heat.colors(length(unique(zest_schools$year)))) +
+  labs(x= "Convolved habitat risk 2019 (scaled and centered)", y = "Sh positive",
+       title = "Sh positive - prop positive")
+
+## model ZEST % pos
+mod_BT <- glm(cbind(shpos, n_tested) ~ values_z*factor(year), family="binomial", data=tmp %>% 
+                        filter(layer == "convolved_hab_risk_2019_BTtemp"))
+mod_L8 <- glm(cbind(shpos, n_tested) ~ values_z*factor(year), family="binomial", data=tmp %>% 
+                        filter(layer == "convolved_hab_risk_2019_L8temp"))
+mod_NO <- glm(cbind(shpos, n_tested) ~ values_z*factor(year), family="binomial", data=tmp %>% 
+                        filter(layer == "convolved_hab_risk_2019_NOtemp"))
+# DHARMa::simulateResiduals(mod_BT, n=999, plot=T)
+AIC(mod_BT, mod_L8, mod_NO)
+```
