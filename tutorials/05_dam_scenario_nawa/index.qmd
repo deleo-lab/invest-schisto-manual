@@ -65,18 +65,18 @@ r_years <- c("2015", "2017", "2019", "2021", "2023", "2025")
 
 ```{r fullaoi}
 ## full regional AOI
-fl <- list.files("G:/My Drive/GEEexports", full.names = T)
+fl <- list.files("G:/My Drive/De Leo Lab/projects/InVEST_schisto/InVEST_scenario_data/CIV/Bas-Sassandra/GEEexports", full.names = T)
 fl <- fl[which(str_detect(fl, "Bas-Sassandra"))]
 
 region_aoi <- vect(fl[which(str_detect(fl, "shp"))])
-r_ndvi_dry <- rast(fl[which(str_detect(fl, "NDVI_dry"))])
-r_ndvi_wet <- rast(fl[which(str_detect(fl, "NDVI_wet"))])
-r_temp_dry <- rast(fl[which(str_detect(fl, "waterTemp_dry"))])
-r_temp_wet <- rast(fl[which(str_detect(fl, "waterTemp_wet"))])
-# r_water <- rast(fl[which(str_detect(fl, "water_mask"))])
-r_pop <- rast(fl[which(str_detect(fl, "worldpop"))])
-
-r_water <- rast(fl[which(str_detect(fl, "water_mask_binary"))])
+# r_ndvi_dry <- rast(fl[which(str_detect(fl, "NDVI_dry"))])
+# r_ndvi_wet <- rast(fl[which(str_detect(fl, "NDVI_wet"))])
+# r_temp_dry <- rast(fl[which(str_detect(fl, "waterTemp_dry"))])
+# r_temp_wet <- rast(fl[which(str_detect(fl, "waterTemp_wet"))])
+# # r_water <- rast(fl[which(str_detect(fl, "water_mask"))])
+# r_pop <- rast(fl[which(str_detect(fl, "worldpop"))])
+# 
+# r_water <- rast(fl[which(str_detect(fl, "water_mask_binary"))])
 ```
 
 ```{r plotaoi}
@@ -246,6 +246,7 @@ input_summary %>%
 fl <- list.files(paste0(fp, "cropped_output/"), full.names = T)
 fl <- fl[which(str_detect(fl, "tif"))]
 fl <- fl[-which(str_detect(fl, "unmasked"))]
+fl <- fl[-which(str_detect(fl, "yml"))]
 
 r_risk <- rast(fl[which(str_detect(fl, "risk"))])
 r_suit <- rast(fl[which(str_detect(fl, "suit"))])
@@ -305,6 +306,26 @@ for (i in 1:length(nms)) {
   cat("\n\n")
 }
 ```
+
+#### Population estimate (in units of est people)  
+```{r}
+rr <- r_risk[[which(str_detect(names(r_risk), "risk_to_pop_count_abs"))]] / 100
+rr <- aggregate(rr, fact = 10)
+names(rr) <- paste0(names(rr), "_people")
+  
+print(
+  ggplot() +
+    geom_spatraster(data=rr)+
+    facet_wrap(~lyr, labeller = nice_titles)+
+    scale_x_continuous(n.breaks = 4) +
+    scale_y_continuous(n.break = 4) 
+)
+## mean values and sum of entire area
+g_res <- global(rr, c("sum", "mean", "sd"), na.rm = TRUE) %>% 
+  rownames_to_column("var") %>% 
+  rbind(g_res)
+```
+
 :::
 
 Summary table for the total AOI. 

@@ -1,0 +1,674 @@
+---
+title: "InVEST: Schistosomiasis"
+format: pptx
+---
+
+```{r}
+library(tidyverse)
+library(sf)
+library(terra)
+library(tidyterra)
+library(patchwork)
+
+theme_set(theme_bw(base_size = 18))
+theme_update(strip.background = element_rect(fill = "white"),
+             plot.title = element_text(hjust = 0.5))
+nice_titles <- as_labeller(function(x) {str_wrap(str_replace_all(x, "_", " "),10)})
+
+binomial_smooth <- function(...) {
+  geom_smooth(method = "glm", method.args = list(family = "binomial"), ...)
+}
+
+line_col <- "sienna1"
+```
+
+# Scenario 1: Pemba  
+
+```{r}
+fl <- list.files("G:/My Drive/De Leo Lab/projects/InVEST_schisto/InVEST_scenario_data/zanzibar/GEEexports", full.names = T)
+
+scenario_years <- c(2013, 2015, 2017, 2019, 2021, 2023)
+
+## load files
+region_aoi <- vect(fl[which(str_detect(fl, "shp"))])
+region_aoi <- aggregate(region_aoi)
+# r_ndvi_dry <- rast(fl[which(str_detect(fl, "NDVI_dry"))])
+# r_ndvi_wet <- rast(fl[which(str_detect(fl, "NDVI_wet"))])
+# r_temp_dry <- rast(fl[which(str_detect(fl, "waterTemp_dry"))])
+# r_temp_wet <- rast(fl[which(str_detect(fl, "waterTemp_wet"))])
+# r_temp_dry_BT <- rast(fl[which(str_detect(fl, "waterTemp_BT_dry"))])
+# r_temp_wet_BT <- rast(fl[which(str_detect(fl, "waterTemp_BT_wet"))])
+r_temp_dry_modis <- rast(fl[which(str_detect(fl, "waterTemp_modis_dry"))])
+r_temp_wet_modis <- rast(fl[which(str_detect(fl, "waterTemp_modis_wet"))])
+r_water <- rast(fl[which(str_detect(fl, "water_mask"))])
+r_pop <- rast(fl[which(str_detect(fl, "worldpop"))])
+
+## give layers names based on data/year
+rename_layers <- function(rstack){
+  nms <- names(rstack)
+  srcs <- sources(rstack)
+  
+  srcs <- str_extract(srcs, "[^/]+$")
+  srcs <- str_remove(srcs, ".tif")
+  srcs <- str_remove(srcs, "habsuit_")
+  
+  names(rstack) <- srcs
+  
+  rstack
+}
+
+# r_ndvi_dry <- rename_layers(r_ndvi_dry)
+# r_ndvi_wet <- rename_layers(r_ndvi_wet)
+# r_temp_dry <- rename_layers(r_temp_dry)
+# r_temp_wet <- rename_layers(r_temp_wet)
+# r_temp_dry_BT <- rename_layers(r_temp_dry_BT)
+# r_temp_wet_BT <- rename_layers(r_temp_wet_BT)
+r_temp_dry_modis <- rename_layers(r_temp_dry_modis)
+r_temp_wet_modis <- rename_layers(r_temp_wet_modis)
+r_water <- rename_layers(r_water)
+r_pop <- rename_layers(r_pop)
+
+## mask areas outside of aoi
+# r_ndvi_dry <- mask(r_ndvi_dry, region_aoi)
+# r_ndvi_wet <- mask(r_ndvi_wet, region_aoi)
+# r_temp_dry <- mask(r_temp_dry, region_aoi)
+# r_temp_wet <- mask(r_temp_wet, region_aoi)
+# r_temp_dry_BT <- mask(r_temp_dry_BT, region_aoi)
+# r_temp_wet_BT <- mask(r_temp_wet_BT, region_aoi)
+r_temp_dry_modis <- mask(r_temp_dry_modis, region_aoi)
+r_temp_wet_modis <- mask(r_temp_wet_modis, region_aoi)
+r_water <- mask(r_water, region_aoi)
+r_pop <- mask(r_pop, region_aoi)
+
+## water 0,1
+r_water[r_water>0] = 1
+r_water = as.factor(r_water)
+```
+
+
+```{r}
+## In VEST outputs
+fl <- list.files("G:/My Drive/De Leo Lab/projects/InVEST_schisto/InVEST_scenario_data/zanzibar/InVEST_layers", full.names = T)
+fl <- fl[which(str_detect(fl, "tif"))]
+fl <- fl[-which(str_detect(fl, "unmasked"))]
+fl <- fl[which(str_detect(fl, "modis"))]
+
+r_risk <- rast(fl[which(str_detect(fl, "risk"))])
+r_suit <- rast(fl[which(str_detect(fl, "suit"))])
+```
+
+## Input data: AOI  
+
+```{r}
+ggplot() +
+  geom_spatvector(data = region_aoi, fill = "grey") +
+  scale_x_continuous(n.breaks = 4) +
+  labs(title = "Pemba Island, Zanzibar, Tanzania") 
+```
+
+## Input data: Water 
+
+```{r}
+ggplot() +
+  geom_spatraster(data = r_water$water_mask_TZA_Pemba_2021) +
+  geom_spatvector(data=region_aoi, col="grey30", fill="transparent") +
+  scale_x_continuous(n.breaks = 4) +
+  scale_fill_manual(values = c(`0` = "grey", `1` = "navy"), na.value = "transparent") +
+  theme(legend.position = "none") 
+```
+
+## Input data: Average temperature 
+
+
+```{r}
+tmp <- c(r_temp_dry_modis$waterTemp_modis_dry_TZA_Pemba_2015, r_temp_wet_modis$waterTemp_modis_wet_TZA_Pemba_2015)
+
+names(tmp) = c("Dry season", "Wet season")
+
+ggplot()+
+  geom_spatraster(data=tmp) +
+  facet_wrap(~lyr, labeller = nice_titles) +
+  theme_void() +
+  scale_fill_whitebox_c(palette = "muted") 
+```
+
+...
+
+## Prediction: Compare temperature inputs  
+MODIS 2015 - 2026 vs No Temp. 
+
+There is a difference, though minor, which might be because there isn't a lot of temperature variability in the MODIS data or inheriently because there is little topography and thus temperature variation across Pemba. 
+
+```{r, eval=F}
+tmp <- c(r_risk$convolved_hab_risk_2013_2026_modisTEMP,
+         r_risk$convolved_hab_risk_2013_2026_NoTemp)
+names(tmp) = c("MODIS", "No temperature")
+
+
+p1 <- ggplot() +
+  geom_spatraster(data = tmp) +
+  geom_spatvector(data=region_aoi, col="grey30", fill="transparent") +
+  facet_wrap(~lyr) +
+  scale_x_continuous(n.breaks = 4) +
+  scale_fill_whitebox_c(palette = "deep") +
+  labs(fill=NULL)
+
+tmp <- r_risk$convolved_hab_risk_2013_2026_modisTEMP -
+         r_risk$convolved_hab_risk_2013_2026_NoTemp
+names(tmp) = "Difference (MODIS - No temp.)"
+
+p2 <- ggplot() +
+  geom_spatraster(data = tmp) +
+  geom_spatvector(data=region_aoi, col="grey30", fill="transparent") +
+  facet_wrap(~lyr) +
+  scale_x_continuous(n.breaks = 4) +
+  scale_fill_whitebox_c(palette = "bl_yl_rd") +
+  labs(fill=NULL)
+
+p1 + p2 & theme(legend.position = "bottom")
+```
+
+## Prediction: Compare early and late elimination scenarios  
+
+Erradication began in 2012, the earliest data is from ZEST 2013. The 'best' recent data is 2021, though data collection went through 2024.
+
+```{r}
+r_conv_risk <- r_risk[[which(str_detect(names(r_risk), "convolved_hab_risk"))]]
+r_conv_risk <- r_conv_risk[[-which(str_detect(names(r_conv_risk), "2013_2026"))]]
+r_conv_risk <- r_conv_risk[[-which(str_detect(names(r_conv_risk), "2025"))]]
+
+tmp <- r_conv_risk
+names(tmp) <- scenario_years
+
+ggplot() +
+  geom_spatraster(data = tmp) +
+  geom_spatvector(data=region_aoi, col="grey30", fill="transparent") +
+  facet_wrap(~lyr) +
+  scale_x_continuous(n.breaks = 4) +
+  scale_fill_grass_c(palette = "inferno") +
+  labs(fill=NULL, title = "Convolved habitat risk") +
+  theme_void()
+```
+
+## Early and Late  
+```{r}
+tmp <- tmp[[c(2,6)]]
+names(tmp) <- c("Year 1: 2015", "10 years later: 2023")
+
+ggplot() +
+  geom_spatraster(data = tmp) +
+  geom_spatvector(data=region_aoi, col="grey30", fill="transparent") +
+  facet_wrap(~lyr) +
+  scale_x_continuous(n.breaks = 4) +
+  scale_fill_grass_c(palette = "inferno") +
+  labs(fill=NULL, title = "Convolved habitat risk") 
+```
+
+## Suitability: Habitat risk 
+
+```{r}
+r_hab_suit <- r_suit[[which(str_detect(names(r_suit), "habitat_suit_weighted_mean"))]]
+r_hab_suit <- r_hab_suit[[-which(str_detect(names(r_hab_suit), "2013_2026"))]]
+r_hab_suit <- r_hab_suit[[-which(str_detect(names(r_hab_suit), "2025"))]]
+
+tmp <- r_hab_suit
+names(tmp) <- scenario_years
+
+ggplot() +
+  geom_spatraster(data = tmp[[c(2,6)]]) +
+  geom_spatvector(data=region_aoi, col="grey30", fill="transparent") +
+  facet_wrap(~lyr) +
+  scale_x_continuous(n.breaks = 4) +
+  scale_fill_grass_c(palette = "inferno") +
+  labs(fill=NULL, title = "Habitat risk (weighted mean)") 
+```
+
+## Habitat suitability and convoluted risk  
+
+```{r}
+r1 <- r_suit$habitat_suit_weighted_mean_2015_modisTEMP
+r2 <- r_risk$convolved_hab_risk_2015_modisTEMP
+inset_shp <- centroids(region_aoi)
+inset_shp <- buffer(inset_shp, 2e3, capstyle="square") 
+
+p1 <- ggplot() +
+  geom_spatraster(data = r1) +
+  geom_spatvector(data=region_aoi, col="grey0", fill="transparent") +
+  geom_spatvector(data=inset_shp, col="black", fill="transparent", lwd=0.75) +
+  theme(axis.text = element_blank(), axis.ticks = element_blank()) +
+  scale_fill_grass_c(palette = "inferno") 
+
+i1 <- ggplot() +
+  geom_spatraster(data = crop(r1, inset_shp)) +
+  geom_spatvector(data = inset_shp, fill="transparent", lwd=0.75) +
+  theme_void() + 
+  scale_fill_grass_c(palette = "inferno") 
+
+p2 <- ggplot() +
+  geom_spatraster(data = r2) +
+  geom_spatvector(data=region_aoi, col="grey30", fill="transparent") +
+  geom_spatvector(data=inset_shp, col="grey70", fill="transparent", lwd=0.75) +
+  theme(axis.text = element_blank(), axis.ticks = element_blank()) +
+  scale_fill_grass_c(palette = "inferno") 
+
+i2 <- ggplot() +
+  geom_spatraster(data = crop(r2, inset_shp)) +
+  geom_spatvector(data = inset_shp, fill="transparent", lwd=0.75) +
+  theme_void() + 
+  scale_fill_grass_c(palette = "inferno") 
+
+p3 <- p1 + i1 + plot_annotation(title = "Convolved habitat risk")
+p4 <- p2 + i2 + plot_annotation(title = "Habitat risk (weighted mean)")
+  
+p3 / p4 & theme(legend.position = "none")
+
+```
+
+
+```{r}
+p3
+p4
+rm(p1, p2, p3, p4, i1, i2, r1, r2)
+```
+
+
+## Prediction: Convolved risk does not change overtime
+
+Convolved risk stays stable 2015-2023 (average across the entire island)
+```{r}
+convolved_ts_summary <- rbind(
+  # global(r_hab_suit, fun=c("sum", "mean", "sd"), na.rm=T),
+  global(r_conv_risk, fun=c("sum", "mean", "sd"), na.rm=T)
+) %>% 
+  rownames_to_column() %>% 
+  mutate(metric = ifelse(str_detect(rowname, "habitat"), "Habitat suitability", "Convolved habitat risk"),
+         year = as.integer(str_sub(rowname, -14, -11)),
+         ymin = mean-sd, ymax=mean+sd)
+
+p1 <- convolved_ts_summary %>% 
+  ggplot(aes(x=year, y=mean)) +
+  geom_pointrange(aes(ymin=ymin, ymax=ymax), col=line_col, lwd=0.75) +
+  geom_line(col=line_col, lwd=0.75) +
+  # facet_wrap(~metric, scales="free_y") +
+  scale_x_continuous(breaks = scenario_years) +
+  labs(y="Convolved habitat risk (mean+sd)", x=NULL)
+
+p2 <- convolved_ts_summary %>% 
+  ggplot(aes(x=year, y=sum)) +
+  geom_point(col=line_col, size=2.5) +
+  geom_line(col=line_col, lwd=0.75) +
+  # facet_wrap(~metric, scales="free_y") +
+  scale_x_continuous(breaks = scenario_years) +
+  labs(y=expression(Sigma~"Convolved habitat risk"), x=NULL)
+
+p1 + p2
+```
+
+## Snails found and risk have no/slightly negative relationship
+
+```{r}
+fp_z <- "G:/Shared drives/Belmont-CEH2/Data/Zanzibar/"
+
+zest_snails <- read.csv(paste0(fp_z, "ZEST/ZEST_SNAIL_DATA_MAIN_v23_2021-01-11-v1_Giulio_(2.7.2026).csv"))
+schistobreak_snails <- read.csv(paste0(fp_z, "SchistoBreak/SchistoBreak_Snail_WB_Intv_14.01.2026.csv"))
+
+## combine datasets --- note zest = n all spp, sb=bg only
+snails_zest_sb <- rbind(
+  zest_snails %>% 
+    filter(island == "Pemba", !is.na(longi_dd), !is.na(lati_dd)) %>% 
+    select(year, n_snails = no_collected, bglob_01 = bglob, lat = lati_dd, lon=longi_dd),
+  schistobreak_snails %>% 
+    mutate(year = as.integer(str_sub(date, -4, -1)),
+           bglob_01 = ifelse(bg>0, 1, 0)) %>% 
+    select(year, n_snails = bg, bglob_01, lat=latitude_gps, lon=longitude_gps) 
+) %>% 
+  st_as_sf(coords = c("lon", "lat"), crs=4326) %>% 
+  st_transform(crs=crs(r_risk)) %>% 
+  filter(!is.na(n_snails))
+
+tmp <- extract(r_risk[[which(str_detect(names(r_risk), "modisTEMP"))]], snails_zest_sb, ID=F)
+snails_zest_sb <- cbind(snails_zest_sb, tmp)
+  
+snails_zest_sb %>% 
+  mutate(risk = case_when(year == 2013 ~ convolved_hab_risk_2013_modisTEMP,
+                          year == 2015 ~ convolved_hab_risk_2015_modisTEMP,
+                          year == 2017 ~ convolved_hab_risk_2017_modisTEMP,
+                          year == 2019 ~ convolved_hab_risk_2019_modisTEMP,
+                          year == 2021 ~ convolved_hab_risk_2021_modisTEMP,
+                          year == 2023 ~ convolved_hab_risk_2023_modisTEMP,
+                          TRUE ~ convolved_hab_risk_2013_2026_modisTEMP)) %>% 
+  ggplot(aes(x = risk, y=bglob_01, col=factor(year))) +
+  geom_point() +
+  binomial_smooth(se=F) +
+  labs(x="Convolved habitat risk", y="Bulinus globosus observed", col=NULL)
+
+rm(zest_snails, schistobreak_snails, snails_zest_sb)
+```
+
+
+## Schools and convolved risk
+
+```{r}
+
+zest_schools <- read.csv(paste0(fp_z, "ZEST/Merged_datasets_Schools_Unguja_Pemba_2012-2021_v36_FINAL_plus_MDA_GPS_short_(27.10.2021)_SK-v1_Giulio_(1.7.2026).csv"))
+
+sb_schools <- read.csv(paste0(fp_z, "SchistoBreak/SchistoBreak_School_2020-2024_v1_Giulio_(3.9.2026).csv"))
+
+## schools are revisted, but don't have GPS each time
+zsloc <- zest_schools %>% 
+  filter(isl == "Pemba", !is.na(lat), !is.na(longitude)) %>% ## remove one school w/o coords
+  select(school, shehia_of_school, district, lat, longitude) %>% 
+  distinct()
+
+sbloc <- sb_schools %>% 
+  filter(!is.na(latitude), !is.na(longitude)) %>% 
+  group_by(school, shehia_of_school) %>% 
+  summarise(latitude = mean(latitude),
+            longitude = mean(longitude),
+            .groups="drop")
+
+zest_schools <- zest_schools %>% 
+  filter(isl == "Pemba") %>% 
+  group_by(school, shehia_of_school, district, year) %>% 
+  summarise(n = n(), 
+            n_tested = n - (sum(is.na(shpos))), ## assume NA = not tested
+            shpos = sum(shpos, na.rm=T),
+            .groups ="drop") %>% 
+  left_join(zsloc) %>% 
+  # filter(!is.na(lat)) %>% filter(school == "PANDANI")
+  ## fill in the missing coordinates b/c I think its the same school
+  mutate(lat = ifelse(is.na(lat), zsloc %>% filter(school == "PANDANI") %>% pull(lat), lat),
+         longitude = ifelse(is.na(longitude), zsloc %>% filter(school == "PANDANI") %>% pull(longitude), longitude))
+
+sb_schools <- sb_schools %>% 
+  group_by(school, shehia_of_school, year) %>% 
+  summarise(n = n(), 
+            n_tested = n - (sum(is.na(shpos))), ## assume NA = not tested
+            shpos = sum(shpos, na.rm=T),
+            .groups ="drop") %>% 
+  left_join(sbloc) %>% 
+  filter(!is.na(latitude)) ## loose 2 observations
+
+## combine datasets --- note zest = n all spp, sb=bg only
+ppl_zest_sb <- rbind(
+  zest_schools %>% 
+    select(year, n, n_tested, shpos, lat, lon=longitude),
+  sb_schools %>% 
+    select(year, n, n_tested, shpos, lat=latitude, lon=longitude) 
+) %>% 
+  st_as_sf(coords = c("lon", "lat"), crs=4326) %>% 
+  st_transform(crs=crs(r_risk)) 
+
+## use model from year for the respective year and average for other years
+tmp <- extract(r_risk, ppl_zest_sb, ID=F)
+ppl_zest_sb <- cbind(ppl_zest_sb, tmp)
+
+ppl_zest_sb <- ppl_zest_sb %>% 
+  mutate(risk = case_when(year == 2013 ~ convolved_hab_risk_2013_modisTEMP,
+                          year == 2015 ~ convolved_hab_risk_2015_modisTEMP,
+                          year == 2017 ~ convolved_hab_risk_2017_modisTEMP,
+                          year == 2019 ~ convolved_hab_risk_2019_modisTEMP,
+                          year == 2021 ~ convolved_hab_risk_2021_modisTEMP,
+                          year == 2023 ~ convolved_hab_risk_2023_modisTEMP,
+                          TRUE ~ convolved_hab_risk_2013_2026_modisTEMP)) %>% 
+  mutate(year = as.factor(year)) %>% 
+  # pivot_longer(starts_with("convolved"), names_to = "layer", values_to = "values") %>% 
+  mutate(values_z = scale(risk),
+         prop_pos = shpos/n_tested,
+         shpos_01 = ifelse(shpos > 0, 1, shpos))
+
+ppl_zest_sb %>% 
+  filter(year != 2024) %>%  ## very little data
+  ggplot(aes(x = risk, y=shpos_01)) +
+  geom_point(pch="|") +
+  binomial_smooth(se=F) +
+  labs(x="Convolved habitat risk", y="S. haematobium (School)")
+
+ppl_zest_sb %>% 
+  filter(year != 2024) %>%  ## very little data
+  ggplot(aes(x = risk, y=shpos_01, col=factor(year))) +
+  geom_point() +
+  binomial_smooth(se=F) +
+  scale_colour_manual(values = heat.colors(length(unique(ppl_zest_sb$year)))) +
+  labs(x="Convolved habitat risk", y="S. haematobium (School)",
+       col=NULL)
+
+## plot ZEST -- schools BINARY
+ppl_zest_sb %>% 
+  filter(year != 2024) %>%  ## very little data
+  ggplot(aes(x=risk, y=prop_pos, col=year)) +
+  geom_point(alpha=0.8, pch="|") +
+  # geom_smooth(se=F) +
+  binomial_smooth(se=F) +
+  # facet_wrap(~layer) +
+  scale_colour_manual(values = heat.colors(length(unique(ppl_zest_sb$year)))) +
+  scale_y_continuous(transform = "log1p") +
+  labs(x="Convolved habitat risk", y="S. haematobium, proportion (School)",
+       col=NULL)
+
+rm(zest_schools, sb_schools, zslocs, sbloc)
+```
+
+
+# Scenario: Soubre and Gribo-Popoli Hydroelectric Power Stations  
+
+```{r}
+# civ <- ... # TO DO: add country boarder and Africa coast edge cropped to 
+fp <- "G:/My Drive/De Leo Lab/projects/InVEST_schisto/InVEST_scenario_data/CIV/Bas-Sassandra/"
+fl <- list.files(paste0(fp, "GEEexports/"), full.names = T)
+fl <- fl[which(str_detect(fl, "Bas-Sassandra"))]
+
+region_aoi <- vect(fl[which(str_detect(fl, "shp"))])
+
+dam_locs <- data.frame(
+  name = c("Gribo-Popoli", "Soubre"),
+  lat = c(5.6980560, 5.8025358),
+  lon = c(-6.5713890, -6.6558854)
+) 
+
+dam_locs <- vect(dam_locs, geom=c("lon", "lat"), crs="EPSG:4326")
+dam_locs <- terra::project(dam_locs, "EPSG:32630")
+
+dam_buffer <- buffer(centroids(dam_locs), capstyle="square",
+                     width = 10000)
+
+
+fl <- list.files(paste0(fp, "cropped_input/"), full.names = T)
+
+aoi <- vect(fl[which(str_detect(fl, "shp"))])
+r_ndvi_dry <- rast(fl[which(str_detect(fl, "NDVI_dry"))])
+r_ndvi_wet <- rast(fl[which(str_detect(fl, "NDVI_wet"))])
+r_temp_dry <- rast(fl[which(str_detect(fl, "waterTemp_dry"))])
+r_temp_wet <- rast(fl[which(str_detect(fl, "waterTemp_wet"))])
+r_water <- rast(fl[which(str_detect(fl, "water_"))])
+r_water[is.na(r_water)] = 0
+r_water <- as.factor(r_water)
+r_pop <- rast(fl[which(str_detect(fl, "cropped_population"))])
+
+
+fl <- list.files(paste0(fp, "cropped_output/"), full.names = T)
+fl <- fl[which(str_detect(fl, "tif"))]
+fl <- fl[-which(str_detect(fl, "unmasked"))]
+fl <- fl[-which(str_detect(fl, "yml"))]
+
+r_risk <- rast(fl[which(str_detect(fl, "risk"))])
+r_suit <- rast(fl[which(str_detect(fl, "suit"))])
+```
+
+## Dam locations  
+
+```{r}
+civ <- rgeoboundaries::gb_adm1(country = "CIV")
+civ <- st_union(civ)
+# plot(civ)
+
+ggplot() +
+  geom_sf(data=civ) +
+  geom_spatvector(data=region_aoi, fill="grey50") +
+  geom_spatvector(data=aoi, fill="cyan3") +
+  geom_spatvector(data=dam_locs, col="salmon")
+```
+
+## Water changes 
+
+```{r}
+tmp <- c(r_water$water_2015, r_water$water_2025)
+names(tmp) <- c("Pre construction: 2015", 
+                "Post construction: 2025")
+ggplot() +
+  geom_spatraster(data=tmp) +
+  facet_wrap(~lyr) +
+  geom_spatvector(data=dam_locs, col="red", size=2) +
+  scale_x_continuous(n.breaks = 4) +
+  scale_fill_manual(values = c("grey", "navy"), na.value = "transparent") +
+  theme(legend.position = "none")
+  
+```
+
+## NDVI
+
+```{r}
+tmp <- c(r_ndvi_dry$NDVI_dry_2015, r_ndvi_dry$NDVI_dry_2025)
+names(tmp) <- c("Pre construction: 2015", 
+                "Post construction: 2025")
+ggplot() +
+  geom_spatraster(data=tmp) +
+  facet_wrap(~lyr) +
+  geom_spatvector(data=dam_locs, col="red", size=2) +
+  scale_x_continuous(n.breaks = 4) +
+  scale_fill_grass_c(palette = "forest_cover")
+
+```
+
+## Habitat suitability changes  
+```{r}
+tmp <- c(r_suit$habitat_suit_weighted_mean_2015, r_suit$habitat_suit_weighted_mean_2025)
+names(tmp) <- c("Pre construction: 2015", 
+                "Post construction: 2025")
+ggplot() +
+  geom_spatraster(data=tmp) +
+  facet_wrap(~lyr) +
+  geom_spatvector(data=dam_locs, col="red", size=2) +
+  scale_x_continuous(n.breaks = 4) +
+  scale_fill_whitebox_c(palette = "bl_yl_rd")
+  
+```
+
+## Convolved risk
+```{r}
+tmp <- c(r_risk$convolved_hab_risk_2015, r_risk$convolved_hab_risk_2025)
+names(tmp) <- c("Pre construction: 2015", 
+                "Post construction: 2025")
+ggplot() +
+  geom_spatraster(data=tmp) +
+  facet_wrap(~lyr) +
+  geom_spatvector(data=dam_locs, col="red", size=2) +
+  scale_x_continuous(n.breaks = 4) +
+  scale_fill_grass_c(palette = "inferno") 
+  
+```
+
+## Mean and total risk increase over the construction period
+```{r}
+tmp <- r_risk[[which(str_detect(names(r_risk), "convolved_hab_risk_"))]]
+max_conv_hab_risk = max(values(tmp, na.rm=T))
+
+g_res <- global(tmp, c("sum", "mean", "sd"), na.rm = TRUE) %>% 
+  rownames_to_column("var") %>% 
+  pivot_longer(sum:mean) %>% 
+  mutate(var = as.integer(str_sub(var, -4, -1)),
+         name = str_to_sentence(name)) 
+
+g_res %>% 
+  ggplot(aes(x=var, y=value)) +
+  geom_line() +
+  geom_point() +
+  facet_wrap(~name, scales = "free") +
+  scale_x_continuous(breaks = unique(g_res$var)) +
+  labs(x=NULL, y="Convolved Risk in AOI")
+```
+
+## Risk as proportion of AOI as low/med/high risk  
+Using 2015 model define low/med/high (<0.3 quantile = low; >0.7 quantile = high)
+```{r}
+## figure out cutoffs
+tmp <- values(r_risk$convolved_hab_risk_2015, na.rm=T)
+tmp <- quantile(tmp, probs = c(0, 0.3, 0.7))
+tmp <- c(tmp, max_conv_hab_risk)
+
+## classify rasts by cutoffs
+buckets <- r_risk[[which(str_detect(names(r_risk), "convolved_hab_risk_"))]]
+m <- c(tmp[1], tmp[2], 1,
+       tmp[2], tmp[3], 2,
+       tmp[3], tmp[4], 3)
+rcl <- matrix(m, ncol=3, byrow=T)
+buckets <- classify(buckets, rcl=rcl, include.lowest=T)
+# plot(buckets$convolved_hab_risk_2025)
+
+## number of cells in each class
+buckets_df <- freq(buckets, usenames=T)  
+
+## plot
+buckets_df %>% 
+  mutate(risk_category = case_when(value == unique(buckets_df$value)[1] ~ "Low",
+                                   value == unique(buckets_df$value)[2] ~ "Medium",
+                                   value == unique(buckets_df$value)[3] ~ "High"),
+         risk_category = factor(risk_category, levels = c("Low", "Medium", "High")),
+         prop=count/ncell(r_risk),
+         year = as.integer(str_sub(layer, -4, -1))) %>% 
+  ggplot(aes(x=year, y=prop, fill=risk_category)) +
+  geom_col(position = "dodge") +
+  scale_fill_manual(values = c("green2", "yellow2", "red2")) +
+  labs(x=NULL, y="Proportion of AOI", fill="Risk Category")
+```
+
+## Population at risk: Using fixed (2015) population estimate
+
+```{r}
+tmp <- r_risk[[which(str_detect(names(r_risk), "risk_to_pop_count_abs"))]]
+tmp <- tmp /100
+tmp <- aggregate(tmp, fact = 10)
+
+g_res <- global(tmp, "sum", na.rm = TRUE) %>% 
+  rownames_to_column("var") %>% 
+  mutate(var = as.integer(str_sub(var, -4, -1))) 
+
+pop2015 <- global(r_pop$population_2015, fun="sum", na.rm=T)
+
+g_res %>% 
+  mutate(proportion = sum/pop2015[[1]]) %>%
+  pivot_longer(c(sum, proportion)) %>% 
+  ggplot(aes(x=var, y=value)) +
+  geom_line() +
+  geom_point() +
+  facet_wrap(~name, scales="free") +
+  scale_x_continuous(breaks = unique(g_res$var)) +
+  labs(x=NULL,
+       caption = paste("Estimated population (2015):", 
+                        round(pop2015[[1]]))) 
+```
+
+## Population at risk: Using fixed (2015) population estimate
+
+```{r}
+r_pop2015_10m_ha <- r_suit$population_suit_sqkm_2015 /1e4
+tmp <- zonal(r_pop2015_10m_ha, z=buckets, fun="sum", na.rm=T) 
+tmp %>% 
+  pivot_longer(-population_suit_sqkm_2015) %>% 
+  rename(count = population_suit_sqkm_2015) %>% 
+  mutate(risk_category = case_when(value == 1 ~ "Low",
+                                   value == 2 ~ "Medium",
+                                   value == 3 ~ "High"),
+         risk_category = factor(risk_category, levels = c("Low", "Medium", "High")),
+         year = as.integer(str_sub(name, -4, -1))) %>% 
+  group_by(year, risk_category) %>% 
+  summarise(count = sum(count), 
+          .groups = "drop") %>% 
+  ggplot(aes(x=year, y=count, fill=risk_category)) +
+  # geom_line(lwd=1) + geom_point(size=3) +
+  geom_col() +
+  scale_fill_manual(values = c("green2", "yellow2", "red2")) +
+  scale_x_continuous(breaks = unique(g_res$var)) +
+  labs(x=NULL, y="Number of people", fill="Risk Category")
+```
+
