@@ -250,6 +250,9 @@ fl <- fl[-which(str_detect(fl, "yml"))]
 
 r_risk <- rast(fl[which(str_detect(fl, "risk"))])
 r_suit <- rast(fl[which(str_detect(fl, "suit"))])
+
+r_risk <- r_risk[[-which(str_detect(names(r_risk), "_worldpop"))]]
+r_suit <- r_suit[[-which(str_detect(names(r_suit), "_worldpop"))]]
 ```
 
 ### Risk  
