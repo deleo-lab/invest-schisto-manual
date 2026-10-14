@@ -584,7 +584,7 @@ g_res %>%
   geom_line() +
   geom_point() +
   facet_wrap(~name, scales = "free") +
-  scale_x_continuous(breaks = unique(g_res$var)) +
+  scale_x_continuous(breaks = unique(g_res$var)) 
   labs(x=NULL, y="Convolved Risk in AOI")
 ```
 
@@ -593,7 +593,8 @@ Using 2015 model define low/med/high (<0.3 quantile = low; >0.7 quantile = high)
 ```{r}
 ## figure out cutoffs
 tmp <- values(r_risk$convolved_hab_risk_2015, na.rm=T)
-tmp <- quantile(tmp, probs = c(0, 0.3, 0.7))
+tmp <- quantile(tmp, probs = c(0, 0.4, 0.7))
+tmp
 tmp <- c(tmp, max_conv_hab_risk)
 
 ## classify rasts by cutoffs
@@ -669,6 +670,7 @@ tmp %>%
   geom_col() +
   scale_fill_manual(values = c("green2", "yellow2", "red2")) +
   scale_x_continuous(breaks = unique(g_res$var)) +
-  labs(x=NULL, y="Number of people", fill="Risk Category")
+  labs(x=NULL, y="Number of people", fill="Risk Category",
+       caption = "Habitat suitability 2015:\nQ1: 0-40%\nQ2: 30-70%\nQ3:70- >100%")
 ```
 
