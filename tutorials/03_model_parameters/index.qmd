@@ -4,7 +4,7 @@ description: "Details on the model parameters and how the model works"
 date: 02-05-2026 #important if sorting by date in tutorials
 categories: [InVEST, Quickstart, Parameters] #rough ideas if want tags
 image: plugin_blank.png #must be in this folder
-draft: true #true until ready to post
+draft: false #true until ready to post
 ---
 
 ```{r}
